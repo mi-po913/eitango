@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#4f46e5">
+<title>英単語学習アプリ</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#273549; --fg:#f1f5f9; --muted:#94a3b8;
+    --accent:#6366f1; --accent2:#818cf8; --ok:#22c55e; --ng:#ef4444; --line:#334155; --warn:#f59e0b;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+    background:var(--bg); color:var(--fg); line-height:1.5;
+    max-width:520px; margin:0 auto; min-height:100vh; padding:0 14px 90px;
+  }
+  header{
+    position:sticky; top:0; z-index:20; background:rgba(15,23,42,.92); backdrop-filter:blur(8px);
+    padding:14px 2px 10px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--line);
+  }
+  header h1{font-size:18px; margin:0; flex:1;}
+  .pill{font-size:12px; color:var(--muted); background:var(--card); padding:4px 10px; border-radius:999px;}
+  h2{font-size:16px; margin:22px 2px 10px;}
+  .sub{color:var(--muted); font-size:13px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin:12px 0;}
+  button{font-family:inherit; cursor:pointer; border:none; border-radius:12px; font-size:15px;}
+  .btn{width:100%; padding:15px; background:var(--accent); color:#fff; font-weight:600; margin:8px 0;
+       display:flex; align-items:center; justify-content:center; gap:8px; transition:.15s;}
+  .btn:active{transform:scale(.98);}
+  .btn.sec{background:var(--card2); color:var(--fg); border:1px solid var(--line);}
+  .btn.ghost{background:transparent; color:var(--accent2); border:1px solid var(--line);}
+  .btn:disabled{opacity:.45;}
+  .lvitem{display:flex; align-items:center; gap:12px; padding:12px 8px; border-bottom:1px solid var(--line);}
+  .lvitem:last-child{border-bottom:none;}
+  .lvitem label{flex:1; display:flex; flex-direction:column;}
+  .lvitem .lvname{font-weight:600;}
+  .lvitem .lvmeta{font-size:12px; color:var(--muted);}
+  input[type=checkbox]{width:22px; height:22px; accent-color:var(--accent2);}
+  .lvgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin:12px 0;}
+  .lvchip{padding:9px 4px; border-radius:11px; background:var(--card2); border:1.5px solid var(--line);
+          color:var(--fg); text-align:center; line-height:1.15; cursor:pointer; transition:.12s;}
+  .lvchip:active{transform:scale(.96);}
+  .lvchip b{display:block; font-size:14px; font-weight:700;}
+  .lvchip small{display:block; font-size:9px; color:var(--muted); margin-top:1px;}
+  .lvchip.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .lvchip.on small{color:#dbeafe;}
+  .seg{display:flex; gap:8px; flex-wrap:wrap;}
+  .seg button{flex:1; min-width:60px; padding:11px 6px; background:var(--card2); color:var(--fg); border:1px solid var(--line);}
+  .seg button.on{background:var(--accent); color:#fff; border-color:var(--accent);}
+  .stat{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; text-align:center;}
+  .stat .num{font-size:22px; font-weight:700;}
+  .stat .num.due{color:var(--warn);}
+  .stat .lbl{font-size:11px; color:var(--muted);}
+  .hidden{display:none !important;}
+
+  /* Quiz */
+  .qtop{display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--muted); margin:6px 2px;}
+  .bar{height:6px; background:var(--card2); border-radius:6px; overflow:hidden; margin:4px 0 10px;}
+  .bar > i{display:block; height:100%; background:var(--accent2); width:0; transition:width .3s;}
+  .dirtag{display:inline-block; font-size:11px; padding:2px 9px; border-radius:999px; background:var(--card2);
+          border:1px solid var(--line); color:var(--accent2); margin:2px auto 0;}
+  .prompt{font-size:34px; font-weight:800; text-align:center; margin:12px 0 4px; word-break:break-word;}
+  .prompt.ja{font-size:24px;}
+  .wpos{text-align:center; color:var(--muted); font-size:13px; margin-bottom:4px;}
+  .spk{display:block; margin:8px auto 4px; width:56px; height:56px; border-radius:50%; background:var(--card2);
+       border:1px solid var(--line); font-size:24px; color:var(--accent2);}
+  .spk:active{transform:scale(.94);}
+  .opt{width:100%; text-align:left; padding:15px 16px; margin:9px 0; background:var(--card2); color:var(--fg);
+       border:1.5px solid var(--line); font-size:16px; transition:.12s;}
+  .opt:active{transform:scale(.99);}
+  .opt.correct{background:rgba(34,197,94,.18); border-color:var(--ok); color:#bbf7d0;}
+  .opt.wrong{background:rgba(239,68,68,.18); border-color:var(--ng); color:#fecaca;}
+  .opt.dim{opacity:.5;}
+  .fb{text-align:center; font-weight:700; margin:8px 0 2px; min-height:22px;}
+  .fb.ok{color:var(--ok);} .fb.ng{color:var(--ng);}
+  .answden{text-align:center; margin:2px 0 6px;}
+  .answden .pair{font-size:18px; font-weight:700;}
+  .answden .exline{color:var(--muted); font-size:13px; margin-top:2px;}
+
+  /* Wordbook */
+  .search{width:100%; padding:12px 14px; border-radius:12px; background:var(--card2); border:1px solid var(--line);
+          color:var(--fg); font-size:15px; margin:6px 0 4px;}
+  .wb{background:var(--card); border:1px solid var(--line); border-radius:12px; margin:10px 0; overflow:hidden;}
+  .wbhead{display:flex; align-items:center; gap:10px; padding:14px;}
+  .wbhead .w{font-size:19px; font-weight:700; flex:1;}
+  .wbhead .tag{font-size:11px; color:var(--muted); background:var(--card2); padding:3px 8px; border-radius:8px;}
+  .wbspk{width:40px; height:40px; border-radius:50%; background:var(--card2); border:1px solid var(--line); color:var(--accent2); font-size:18px;}
+  .wbbody{padding:0 14px 14px; border-top:1px dashed var(--line);}
+  .wbbody .ja{font-size:17px; font-weight:600; margin:10px 0 4px;}
+  .wbbody .ex{color:var(--muted); font-size:13px;}
+  .flag{display:inline-block; font-size:11px; padding:2px 8px; border-radius:8px; margin-top:8px;}
+  .flag.due{background:rgba(245,158,11,.15); color:#fde68a;}
+  .flag.learning{background:rgba(129,140,248,.15); color:#c7d2fe;}
+  .flag.ok{background:rgba(34,197,94,.15); color:#bbf7d0;}
+  .empty{text-align:center; color:var(--muted); padding:40px 10px;}
+  footer{position:fixed; left:0; right:0; bottom:0; max-width:520px; margin:0 auto; display:flex;
+          background:rgba(15,23,42,.96); backdrop-filter:blur(8px); border-top:1px solid var(--line);}
+  footer button{flex:1; background:transparent; color:var(--muted); padding:10px 2px 12px; font-size:11px;
+                display:flex; flex-direction:column; align-items:center; gap:3px;}
+  footer button .ic{font-size:20px;}
+  footer button.on{color:var(--accent2);}
+  .toast{position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:var(--card2);
+         border:1px solid var(--line); color:var(--fg); padding:10px 16px; border-radius:999px; font-size:13px;
+         opacity:0; transition:.25s; pointer-events:none; z-index:50; max-width:90%; text-align:center;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<header>
+  <h1>📘 英単語学習</h1>
+  <span class="pill" id="selInfo">—</span>
+</header>
+
+<!-- HOME -->
+<section id="view-home">
+  <div class="card">
+    <div class="stat">
+      <div><div class="num due" id="stDue">0</div><div class="lbl">今日の復習</div></div>
+      <div><div class="num" id="stMastered">0</div><div class="lbl">覚えた</div></div>
+      <div><div class="num" id="stAcc">0%</div><div class="lbl">正答率</div></div>
+    </div>
+  </div>
+
+  <h2>レベルを選ぶ <span class="sub">（複数選択可・タップで選択）</span></h2>
+  <div id="levelList" class="lvgrid"></div>
+  <div class="seg" style="margin-top:-4px;">
+    <button id="selAll" class="sec" style="flex:1;padding:10px;">すべて選択</button>
+    <button id="selNone" class="sec" style="flex:1;padding:10px;">選択解除</button>
+  </div>
+
+  <h2>出題の向き</h2>
+  <div class="seg" id="dirSeg">
+    <button data-dir="e2j">英語→意味</button>
+    <button data-dir="j2e">意味→英語</button>
+    <button data-dir="mix">ミックス</button>
+  </div>
+
+  <h2>選択肢の難しさ</h2>
+  <div class="seg" id="diffSeg">
+    <button data-diff="easy">やさしい</button>
+    <button data-diff="normal">ふつう</button>
+    <button data-diff="hard">むずかしい</button>
+  </div>
+  <div class="sub" id="diffHint" style="margin:6px 2px 0;"></div>
+
+  <h2>1回の語数</h2>
+  <div class="seg" id="lenSeg">
+    <button data-len="10">10問</button>
+    <button data-len="20">20問</button>
+    <button data-len="50">50問</button>
+    <button data-len="all">全部</button>
+  </div>
+
+  <h2>スタート</h2>
+  <button class="btn" id="startStudy">▶ 学習スタート <span class="sub" id="studyHint" style="color:#dbeafe;"></span></button>
+  <button class="btn ghost" id="startReview">🔁 今日の復習だけ <span id="reviewCount"></span></button>
+  <button class="btn sec" id="startBook">📖 単語帳モード</button>
+  <div class="sub" style="text-align:center;margin-top:14px;">間隔反復で復習タイミングを自動管理・進捗は端末に保存</div>
+  <button class="btn ghost" id="resetProg" style="margin-top:8px;font-size:13px;padding:10px;">進捗をリセット</button>
+</section>
+
+<!-- QUIZ -->
+<section id="view-quiz" class="hidden">
+  <div class="qtop"><span id="qMode">学習</span><span id="qCount">1 / 10</span></div>
+  <div class="bar"><i id="qBar"></i></div>
+  <div class="card">
+    <div style="text-align:center;"><span class="dirtag" id="qDir">英語→意味</span></div>
+    <div class="prompt" id="qPrompt">—</div>
+    <div class="wpos" id="qPos"></div>
+    <button class="spk" id="qSpeak">🔊</button>
+    <div id="qOptions"></div>
+    <div class="fb" id="qFb"></div>
+    <div class="answden hidden" id="qAns"></div>
+    <button class="btn hidden" id="qNext">次へ ▶</button>
+  </div>
+  <button class="btn ghost" id="qQuit" style="font-size:13px;padding:10px;">やめてホームへ</button>
+</section>
+
+<!-- RESULT -->
+<section id="view-result" class="hidden">
+  <div class="card" style="text-align:center;">
+    <div style="font-size:15px;color:var(--muted);">結果</div>
+    <div style="font-size:44px;font-weight:800;margin:6px 0;" id="rScore">0 / 0</div>
+    <div style="font-size:20px;font-weight:700;" id="rAcc">0%</div>
+    <div class="sub" id="rMsg" style="margin-top:8px;"></div>
+  </div>
+  <button class="btn" id="rAgain">続けて学習</button>
+  <button class="btn ghost" id="rReview">今日の復習だけ</button>
+  <button class="btn sec" id="rHome">ホームへ</button>
+</section>
+
+<!-- WORDBOOK -->
+<section id="view-book" class="hidden">
+  <h2 style="margin-top:14px;">単語帳 <span class="sub" id="bookCount"></span></h2>
+  <input class="search" id="bookSearch" placeholder="🔍 単語・意味で検索">
+  <div class="seg" style="margin-bottom:6px;">
+    <button class="sec on" id="bookAll" style="flex:1;padding:9px;">すべて</button>
+    <button class="sec" id="bookDue" style="flex:1;padding:9px;">復習</button>
+    <button class="sec" id="bookOk" style="flex:1;padding:9px;">覚えた</button>
+  </div>
+  <div id="bookList"></div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<footer>
+  <button data-nav="home" class="on"><span class="ic">🏠</span>ホーム</button>
+  <button data-nav="book"><span class="ic">📖</span>単語帳</button>
+  <button data-nav="reviewNav"><span class="ic">🔁</span>復習</button>
+</footer>
+
+<script>
+const WORDS = [{"level":1,"id":1,"word":"agree","pos":"動詞","ja":"賛成する、同意する","ex":"agree with"},{"level":1,"id":2,"word":"oppose","pos":"動詞","ja":"反対する","ex":"oppose the plan"},{"level":1,"id":3,"word":"advise","pos":"動詞","ja":"忠告する、助言する","ex":"advise him to"},{"level":1,"id":4,"word":"tip","pos":"名詞","ja":"助言、ヒント","ex":"tips on"},{"level":1,"id":4,"word":"tip","pos":"名詞","ja":"チップ、心付け","ex":"leave a tip"},{"level":1,"id":4,"word":"tip","pos":"名詞","ja":"先端、つま先","ex":"the tips of my toes"},{"level":1,"id":5,"word":"discuss","pos":"動詞","ja":"話し合う、議論する","ex":"discuss with"},{"level":1,"id":6,"word":"blame","pos":"動詞","ja":"（〜の）せいにする、非難する","ex":"blame for"},{"level":1,"id":7,"word":"argue","pos":"動詞","ja":"主張する","ex":"argue that"},{"level":1,"id":7,"word":"argue","pos":"動詞","ja":"言い争う、口論する","ex":"argue with"},{"level":1,"id":8,"word":"claim","pos":"動詞","ja":"主張する","ex":"claim that"},{"level":1,"id":8,"word":"claim","pos":"動詞","ja":"要求する、請求する","ex":"make a claim"},{"level":1,"id":9,"word":"complain","pos":"動詞","ja":"不平を言う、訴える","ex":"complain about"},{"level":1,"id":10,"word":"offer","pos":"動詞","ja":"申し出る、提供する","ex":"offer him coffee"},{"level":1,"id":10,"word":"offer","pos":"名詞","ja":"申し出、（特別）提供","ex":"special offer"},{"level":1,"id":11,"word":"suggest","pos":"動詞","ja":"提案する、示唆する","ex":"suggest that"},{"level":1,"id":12,"word":"recommend","pos":"動詞","ja":"勧める、推薦する","ex":"recommend"},{"level":1,"id":13,"word":"grateful","pos":"形容詞","ja":"感謝して","ex":"grateful for"},{"level":1,"id":14,"word":"apologize","pos":"動詞","ja":"謝る","ex":"apologize to for"},{"level":1,"id":15,"word":"excuse","pos":"名詞","ja":"言い訳、口実","ex":"make excuses"},{"level":1,"id":15,"word":"excuse","pos":"動詞","ja":"許す、免除する","ex":"excused"},{"level":1,"id":16,"word":"celebrate","pos":"動詞","ja":"祝う、挙行する","ex":"celebrate"},{"level":1,"id":17,"word":"congratulate","pos":"動詞","ja":"祝福する","ex":"congratulate"},{"level":1,"id":18,"word":"admire","pos":"動詞","ja":"称賛する、感心する","ex":"admire for"},{"level":1,"id":19,"word":"impress","pos":"動詞","ja":"感銘を与える、印象づける","ex":"impressed by"},{"level":1,"id":20,"word":"award","pos":"名詞","ja":"賞","ex":"award ceremony"},{"level":1,"id":20,"word":"award","pos":"動詞","ja":"授与する","ex":"was awarded"},{"level":1,"id":21,"word":"explain","pos":"動詞","ja":"説明する","ex":"explain"},{"level":1,"id":22,"word":"describe","pos":"動詞","ja":"描写する、説明する","ex":"describe"},{"level":1,"id":23,"word":"communicate","pos":"動詞","ja":"意思を伝え合う、連絡する","ex":"communicate with"},{"level":1,"id":24,"word":"express","pos":"動詞","ja":"表現する、述べる","ex":"express opinions"},{"level":1,"id":24,"word":"express","pos":"形容詞","ja":"急行の、速達の","ex":"express train"},{"level":1,"id":25,"word":"promise","pos":"動詞","ja":"約束する","ex":"promise to"},{"level":1,"id":26,"word":"information","pos":"名詞","ja":"情報","ex":"information"},{"level":1,"id":27,"word":"technology","pos":"名詞","ja":"科学技術、テクノロジー","ex":"technology"},{"level":1,"id":28,"word":"research","pos":"名詞・動詞","ja":"研究、調査（する）","ex":"do research on"},{"level":1,"id":29,"word":"material","pos":"名詞","ja":"材料、資料","ex":"materials"},{"level":1,"id":29,"word":"material","pos":"形容詞","ja":"物質的な、重大な","ex":"material support"},{"level":1,"id":30,"word":"artificial","pos":"形容詞","ja":"人工の","ex":"artificial intelligence"},{"level":1,"id":31,"word":"electric","pos":"形容詞","ja":"電気の","ex":"electric car"},{"level":1,"id":32,"word":"invent","pos":"動詞","ja":"発明する","ex":"invent"},{"level":1,"id":32,"word":"invent","pos":"動詞","ja":"（話を）でっち上げる","ex":"invent a story"},{"level":1,"id":33,"word":"discover","pos":"動詞","ja":"発見する、気づく","ex":"discover"},{"level":1,"id":34,"word":"develop","pos":"動詞","ja":"発達する、発展させる、開発する","ex":"develop"},{"level":1,"id":34,"word":"develop","pos":"動詞","ja":"（病気に）かかる","ex":"develop pneumonia"},{"level":1,"id":35,"word":"skill","pos":"名詞","ja":"技術、技能","ex":"skills"},{"level":1,"id":36,"word":"ability","pos":"名詞","ja":"能力、力","ex":"ability"},{"level":1,"id":37,"word":"talent","pos":"名詞","ja":"才能","ex":"talent"},{"level":1,"id":38,"word":"effort","pos":"名詞","ja":"努力","ex":"effort"},{"level":1,"id":39,"word":"practice","pos":"名詞","ja":"練習、実行","ex":"practice"},{"level":1,"id":39,"word":"practice","pos":"名詞","ja":"習慣","ex":"the practice of"},{"level":1,"id":39,"word":"practice","pos":"動詞","ja":"練習する、実践する","ex":"practice playing"},{"level":1,"id":40,"word":"achieve","pos":"動詞","ja":"達成する","ex":"achieve goal of"},{"level":1,"id":41,"word":"manage","pos":"動詞","ja":"何とか〜する","ex":"managed to"},{"level":1,"id":41,"word":"manage","pos":"動詞","ja":"管理する、経営する","ex":"manage"},{"level":1,"id":42,"word":"improve","pos":"動詞","ja":"改善する、上達する","ex":"improve"},{"level":1,"id":43,"word":"produce","pos":"動詞","ja":"生産する、生み出す","ex":"produce"},{"level":1,"id":43,"word":"produce","pos":"名詞","ja":"農産物","ex":"farm produce"},{"level":1,"id":44,"word":"create","pos":"動詞","ja":"創造する、引き起こす","ex":"create"},{"level":1,"id":45,"word":"establish","pos":"動詞","ja":"設立する、築く","ex":"establish"},{"level":1,"id":46,"word":"form","pos":"動詞","ja":"形作る、形成する","ex":"form a band"},{"level":1,"id":46,"word":"form","pos":"名詞","ja":"形、形態、（記入）用紙","ex":"application form"},{"level":1,"id":47,"word":"save","pos":"動詞","ja":"救う、節約する、省く","ex":"save money"},{"level":1,"id":47,"word":"save","pos":"前置詞","ja":"〜を除いて","ex":"save one"},{"level":1,"id":48,"word":"medicine","pos":"名詞","ja":"薬","ex":"take the medicine"},{"level":1,"id":48,"word":"medicine","pos":"名詞","ja":"医学","ex":"study medicine"},{"level":1,"id":49,"word":"patient","pos":"名詞","ja":"患者","ex":"the patient"},{"level":1,"id":49,"word":"patient","pos":"形容詞","ja":"忍耐強い","ex":"be patient"},{"level":1,"id":50,"word":"condition","pos":"名詞","ja":"状態、調子","ex":"in good condition"},{"level":1,"id":50,"word":"condition","pos":"名詞","ja":"条件、環境","ex":"bad conditions"},{"level":2,"id":51,"word":"medical","pos":"形容詞","ja":"医療の、医学の","ex":"medical expenses"},{"level":2,"id":52,"word":"stress","pos":"名詞","ja":"ストレス、緊張","ex":"have stress"},{"level":2,"id":52,"word":"stress","pos":"動詞","ja":"強調する（名詞:重点）","ex":"stress the importance"},{"level":2,"id":53,"word":"suffer","pos":"動詞","ja":"苦しむ、（被害を）被る","ex":"suffer from"},{"level":2,"id":54,"word":"exercise","pos":"名詞","ja":"運動、練習（問題）","ex":"get exercise"},{"level":2,"id":54,"word":"exercise","pos":"動詞","ja":"運動する、（権利を）行使する","ex":"exercise regularly"},{"level":2,"id":55,"word":"breathe","pos":"動詞","ja":"呼吸する","ex":"breathe deeply"},{"level":2,"id":56,"word":"thirsty","pos":"形容詞","ja":"のどが渇いた、（〜を）切望して","ex":"thirsty for"},{"level":2,"id":57,"word":"physical","pos":"形容詞","ja":"身体の、肉体の","ex":"physical health"},{"level":2,"id":57,"word":"physical","pos":"形容詞","ja":"物質の、物理的な","ex":"the physical world"},{"level":2,"id":58,"word":"fever","pos":"名詞","ja":"熱、熱狂","ex":"have a fever"},{"level":2,"id":59,"word":"strength","pos":"名詞","ja":"力、体力、強さ","ex":"strength"},{"level":2,"id":60,"word":"tear","pos":"名詞","ja":"涙","ex":"tears"},{"level":2,"id":60,"word":"tear","pos":"動詞","ja":"引き裂く、破る","ex":"tear up"},{"level":2,"id":61,"word":"taste","pos":"名詞・動詞","ja":"味、〜の味がする、味わう","ex":"taste the soup"},{"level":2,"id":61,"word":"taste","pos":"名詞","ja":"好み、センス","ex":"have good taste in"},{"level":2,"id":62,"word":"rule","pos":"名詞","ja":"規則","ex":"against the rules"},{"level":2,"id":62,"word":"rule","pos":"動詞","ja":"支配する","ex":"rule the country"},{"level":2,"id":63,"word":"role","pos":"名詞","ja":"役割","ex":"play a role"},{"level":2,"id":64,"word":"habit","pos":"名詞","ja":"癖、習慣","ex":"have a habit of"},{"level":2,"id":65,"word":"custom","pos":"名詞","ja":"習慣、慣習","ex":"customs"},{"level":2,"id":65,"word":"custom","pos":"名詞","ja":"税関（customs）","ex":"at customs"},{"level":2,"id":66,"word":"tradition","pos":"名詞","ja":"伝統","ex":"traditions"},{"level":2,"id":67,"word":"society","pos":"名詞","ja":"社会","ex":"society"},{"level":2,"id":67,"word":"society","pos":"名詞","ja":"協会、会","ex":"the Royal Society"},{"level":2,"id":67,"word":"society","pos":"名詞","ja":"交際、つき合い","ex":"her society"},{"level":2,"id":68,"word":"law","pos":"名詞","ja":"法律","ex":"the law"},{"level":2,"id":68,"word":"law","pos":"名詞","ja":"法則","ex":"laws of nature"},{"level":2,"id":69,"word":"ancestor","pos":"名詞","ja":"祖先","ex":"ancestors"},{"level":2,"id":70,"word":"population","pos":"名詞","ja":"人口","ex":"population of"},{"level":2,"id":71,"word":"native","pos":"形容詞","ja":"母国の、その土地の","ex":"native language"},{"level":2,"id":71,"word":"native","pos":"名詞","ja":"（その土地）生まれの人","ex":"a native of Japan"},{"level":2,"id":72,"word":"abroad","pos":"副詞","ja":"海外で、外国へ","ex":"abroad"},{"level":2,"id":73,"word":"local","pos":"形容詞","ja":"地元の、その地方の","ex":"a local bank"},{"level":2,"id":73,"word":"local","pos":"名詞","ja":"地元の人","ex":"the locals"},{"level":2,"id":74,"word":"survey","pos":"名詞・動詞","ja":"調査（する）","ex":"a recent survey"},{"level":2,"id":75,"word":"value","pos":"名詞","ja":"価値、価値観","ex":"the value of"},{"level":2,"id":75,"word":"value","pos":"動詞","ja":"尊重する、重んじる","ex":"value privacy"},{"level":2,"id":76,"word":"treasure","pos":"名詞","ja":"宝、財宝","ex":"national treasure"},{"level":2,"id":76,"word":"treasure","pos":"動詞","ja":"大切にする","ex":"treasure this moment"},{"level":2,"id":77,"word":"fashion","pos":"名詞","ja":"流行、ファッション","ex":"the latest fashion"},{"level":2,"id":77,"word":"fashion","pos":"名詞","ja":"やり方、方法","ex":"in a traditional fashion"},{"level":2,"id":78,"word":"public","pos":"形容詞","ja":"公共の、公の","ex":"public places"},{"level":2,"id":78,"word":"public","pos":"名詞","ja":"大衆、一般の人々","ex":"the general public"},{"level":2,"id":79,"word":"evidence","pos":"名詞","ja":"証拠","ex":"evidence"},{"level":2,"id":80,"word":"vote","pos":"名詞・動詞","ja":"投票（する）","ex":"the right to vote"},{"level":2,"id":81,"word":"government","pos":"名詞","ja":"政府","ex":"the government"},{"level":2,"id":82,"word":"nation","pos":"名詞","ja":"国家、国","ex":"a powerful nation"},{"level":2,"id":82,"word":"nation","pos":"名詞","ja":"国民","ex":"the nation"},{"level":2,"id":83,"word":"capital","pos":"名詞","ja":"首都","ex":"the capital of Canada"},{"level":2,"id":83,"word":"capital","pos":"名詞","ja":"資本","ex":"a little capital"},{"level":2,"id":83,"word":"capital","pos":"形容詞","ja":"死刑に値する、重大な","ex":"a capital offence"},{"level":2,"id":84,"word":"state","pos":"名詞","ja":"状態","ex":"state of mind"},{"level":2,"id":84,"word":"state","pos":"名詞","ja":"国家、州","ex":"church and state"},{"level":2,"id":84,"word":"state","pos":"動詞","ja":"述べる、明言する","ex":"state my opinion"},{"level":2,"id":85,"word":"political","pos":"形容詞","ja":"政治の","ex":"political situation"},{"level":2,"id":86,"word":"price","pos":"名詞","ja":"価格、値段、物価","ex":"a high price"},{"level":2,"id":86,"word":"price","pos":"名詞","ja":"代償","ex":"the price of success"},{"level":2,"id":87,"word":"sum","pos":"名詞","ja":"金額、合計、和","ex":"a large sum"},{"level":2,"id":87,"word":"sum","pos":"動詞","ja":"要約する（sum up）","ex":"sum up"},{"level":2,"id":88,"word":"budget","pos":"名詞","ja":"予算","ex":"budget for"},{"level":2,"id":88,"word":"budget","pos":"形容詞","ja":"格安の、お手頃な","ex":"budget price"},{"level":2,"id":89,"word":"fee","pos":"名詞","ja":"料金、謝礼","ex":"legal fees"},{"level":2,"id":90,"word":"fare","pos":"名詞","ja":"運賃","ex":"taxi fares"},{"level":2,"id":91,"word":"bill","pos":"名詞","ja":"勘定、請求書","ex":"the phone bill"},{"level":2,"id":91,"word":"bill","pos":"名詞","ja":"紙幣、札","ex":"a bill"},{"level":2,"id":91,"word":"bill","pos":"名詞","ja":"法案","ex":"approve a bill"},{"level":2,"id":92,"word":"trade","pos":"名詞","ja":"貿易、商売、業界","ex":"trade with"},{"level":2,"id":92,"word":"trade","pos":"動詞","ja":"交換する","ex":"trade with him"},{"level":2,"id":93,"word":"wealth","pos":"名詞","ja":"富、財産","ex":"wealth and power"},{"level":2,"id":93,"word":"wealth","pos":"名詞","ja":"豊富（a wealth of＝豊富な）","ex":"a wealth of"},{"level":2,"id":94,"word":"economy","pos":"名詞","ja":"経済","ex":"the Japanese economy"},{"level":2,"id":94,"word":"economy","pos":"名詞","ja":"節約","ex":"for the sake of economy"},{"level":2,"id":95,"word":"cost","pos":"動詞","ja":"（費用が）かかる","ex":"cost me 500 dollars"},{"level":2,"id":95,"word":"cost","pos":"名詞","ja":"費用、経費","ex":"the cost of living"},{"level":2,"id":96,"word":"company","pos":"名詞","ja":"会社","ex":"work for a company"},{"level":2,"id":96,"word":"company","pos":"名詞","ja":"同席、交際、一緒にいること","ex":"his company"},{"level":2,"id":96,"word":"company","pos":"名詞","ja":"来客","ex":"expecting company"},{"level":2,"id":97,"word":"task","pos":"名詞","ja":"仕事、任務、課題","ex":"a difficult task"},{"level":2,"id":98,"word":"earn","pos":"動詞","ja":"稼ぐ、（評判などを）得る","ex":"earn money"},{"level":2,"id":99,"word":"hurt","pos":"動詞","ja":"痛む、傷つける","ex":"hurts"},{"level":2,"id":100,"word":"injure","pos":"動詞","ja":"傷つける、けがをさせる","ex":"injure"},{"level":3,"id":101,"word":"damage","pos":"名詞・動詞","ja":"損害、被害（を与える）","ex":"damage the environment"},{"level":3,"id":101,"word":"damages","pos":"名詞","ja":"損害賠償","ex":"claim damages"},{"level":3,"id":102,"word":"destroy","pos":"動詞","ja":"破壊する、滅ぼす","ex":"destroy"},{"level":3,"id":103,"word":"ruin","pos":"動詞","ja":"台無しにする、破壊する","ex":"ruined"},{"level":3,"id":103,"word":"ruin","pos":"名詞","ja":"遺跡、廃墟（ruins）","ex":"the ruins of"},{"level":3,"id":104,"word":"danger","pos":"名詞","ja":"危険","ex":"in danger of"},{"level":3,"id":105,"word":"neighbor","pos":"名詞","ja":"近所の人、隣人","ex":"a neighbor"},{"level":3,"id":106,"word":"audience","pos":"名詞","ja":"観衆、聴衆","ex":"a large audience"},{"level":3,"id":107,"word":"crowd","pos":"名詞","ja":"群衆、人ごみ","ex":"a crowd"},{"level":3,"id":108,"word":"author","pos":"名詞","ja":"著者、作家","ex":"the author of"},{"level":3,"id":109,"word":"staff","pos":"名詞","ja":"職員、スタッフ","ex":"the staff"},{"level":3,"id":110,"word":"clerk","pos":"名詞","ja":"店員、事務員","ex":"a bank clerk"},{"level":3,"id":111,"word":"customer","pos":"名詞","ja":"客、顧客","ex":"customers"},{"level":3,"id":112,"word":"passenger","pos":"名詞","ja":"乗客","ex":"passengers"},{"level":3,"id":113,"word":"elderly","pos":"形容詞","ja":"年配の、高齢の","ex":"elderly people"},{"level":3,"id":114,"word":"female","pos":"形容詞・名詞","ja":"女性（の）、雌（の）","ex":"female workers"},{"level":3,"id":115,"word":"head","pos":"動詞","ja":"向かう、進む","ex":"head for"},{"level":3,"id":115,"word":"head","pos":"動詞","ja":"率いる、指揮する","ex":"headed by"},{"level":3,"id":116,"word":"follow","pos":"動詞","ja":"ついて行く、従う","ex":"follow his advice"},{"level":3,"id":117,"word":"wander","pos":"動詞","ja":"歩き回る、さまよう","ex":"wander about"},{"level":3,"id":118,"word":"travel","pos":"動詞","ja":"旅する、（光などが）進む","ex":"travel around"},{"level":3,"id":119,"word":"pass","pos":"動詞","ja":"通り過ぎる、追い越す、（時が）過ぎる","ex":"pass the post office"},{"level":3,"id":119,"word":"pass","pos":"動詞","ja":"合格する","ex":"pass the exam"},{"level":3,"id":119,"word":"pass","pos":"動詞","ja":"手渡す","ex":"pass me the salt"},{"level":3,"id":119,"word":"pass","pos":"名詞","ja":"定期券、通行証","ex":"an annual pass"},{"level":3,"id":120,"word":"likely","pos":"形容詞","ja":"〜しそうな、ありそうな（副詞:おそらく）","ex":"likely to"},{"level":3,"id":121,"word":"natural","pos":"形容詞","ja":"自然の、生まれつきの","ex":"natural beauty"},{"level":3,"id":121,"word":"natural","pos":"形容詞","ja":"当然の、もっともな","ex":"it is natural that"},{"level":3,"id":122,"word":"certain","pos":"形容詞","ja":"確実な、きっと〜する","ex":"certain to"},{"level":3,"id":122,"word":"certain","pos":"形容詞","ja":"ある、一定の","ex":"a certain country"},{"level":3,"id":123,"word":"probably","pos":"副詞","ja":"おそらく、たぶん","ex":"probably"},{"level":3,"id":124,"word":"face","pos":"動詞","ja":"直面する、（〜に）面する","ex":"faced with"},{"level":3,"id":124,"word":"face","pos":"名詞","ja":"顔、面目","ex":"lose face"},{"level":3,"id":125,"word":"avoid","pos":"動詞","ja":"避ける","ex":"avoid making"},{"level":3,"id":126,"word":"solve","pos":"動詞","ja":"解く、解決する","ex":"solve the problem"},{"level":3,"id":127,"word":"trouble","pos":"名詞","ja":"苦労、困難、面倒","ex":"trouble sleeping"},{"level":3,"id":127,"word":"trouble","pos":"動詞","ja":"悩ませる、手数をかける","ex":"trouble you"},{"level":3,"id":128,"word":"issue","pos":"名詞","ja":"問題、争点","ex":"an international issue"},{"level":3,"id":128,"word":"issue","pos":"名詞","ja":"（雑誌などの）号","ex":"the latest issue"},{"level":3,"id":128,"word":"issue","pos":"動詞","ja":"発行する","ex":"issue a passport"},{"level":3,"id":129,"word":"cheer","pos":"動詞","ja":"声援を送る、元気づける","ex":"cheer on"},{"level":3,"id":129,"word":"cheer","pos":"名詞","ja":"歓声、声援","ex":"give a cheer"},{"level":3,"id":130,"word":"encourage","pos":"動詞","ja":"励ます、促す","ex":"encourage to"},{"level":3,"id":131,"word":"support","pos":"動詞","ja":"支持する、支える、養う","ex":"support her"},{"level":3,"id":131,"word":"support","pos":"名詞","ja":"支援、援助","ex":"financial support"},{"level":3,"id":132,"word":"prevent","pos":"動詞","ja":"妨げる、予防する","ex":"prevent from"},{"level":3,"id":133,"word":"deny","pos":"動詞","ja":"否定する、拒む","ex":"deny that"},{"level":3,"id":134,"word":"enable","pos":"動詞","ja":"可能にする","ex":"enable to"},{"level":3,"id":135,"word":"succeed","pos":"動詞","ja":"成功する","ex":"succeed in"},{"level":3,"id":135,"word":"succeed","pos":"動詞","ja":"引き継ぐ、継承する","ex":"succeed to"},{"level":3,"id":136,"word":"miss","pos":"動詞","ja":"逃す、乗り遅れる、欠席する","ex":"miss the train"},{"level":3,"id":136,"word":"miss","pos":"動詞","ja":"恋しく思う、寂しがる","ex":"I miss you"},{"level":3,"id":137,"word":"fail","pos":"動詞","ja":"失敗する、（試験に）落ちる","ex":"fail the exam"},{"level":3,"id":137,"word":"fail","pos":"動詞","ja":"〜しそこなう、〜できない","ex":"fail to"},{"level":3,"id":138,"word":"mistake","pos":"名詞","ja":"間違い、誤り","ex":"make mistakes"},{"level":3,"id":138,"word":"mistake","pos":"動詞","ja":"間違える、取り違える","ex":"mistake for"},{"level":3,"id":139,"word":"check","pos":"動詞","ja":"調べる、点検する","ex":"check the brakes"},{"level":3,"id":139,"word":"check","pos":"動詞","ja":"阻止する、抑える","ex":"check the spread"},{"level":3,"id":139,"word":"check","pos":"名詞","ja":"小切手、勘定書","ex":"sign a check"},{"level":3,"id":140,"word":"hide","pos":"動詞","ja":"隠す、隠れる","ex":"hide"},{"level":3,"id":141,"word":"draw","pos":"動詞","ja":"（絵を）描く","ex":"draw her portrait"},{"level":3,"id":141,"word":"draw","pos":"動詞","ja":"引く、引き寄せる","ex":"draw attention to"},{"level":3,"id":142,"word":"join","pos":"動詞","ja":"参加する、加わる","ex":"join"},{"level":3,"id":142,"word":"join","pos":"動詞","ja":"つなぐ、結合する","ex":"join pipes"},{"level":3,"id":143,"word":"throw","pos":"動詞","ja":"投げる","ex":"throw"},{"level":3,"id":143,"word":"throw","pos":"動詞","ja":"（パーティーを）開く、催す","ex":"throw a party"},{"level":3,"id":144,"word":"operate","pos":"動詞","ja":"操作する、運転する、運営する","ex":"operate machines"},{"level":3,"id":144,"word":"operate","pos":"動詞","ja":"手術する（operate on）","ex":"operate on"},{"level":3,"id":145,"word":"repair","pos":"名詞・動詞","ja":"修理（する）","ex":"repair a bicycle"},{"level":3,"id":146,"word":"sew","pos":"動詞","ja":"縫う","ex":"sew on"},{"level":3,"id":147,"word":"raise","pos":"動詞","ja":"上げる、持ち上げる","ex":"raise your hand"},{"level":3,"id":147,"word":"raise","pos":"動詞","ja":"育てる","ex":"raise children"},{"level":3,"id":147,"word":"raise","pos":"動詞","ja":"（資金を）集める、（問題を）提起する","ex":"raise funds"},{"level":3,"id":148,"word":"serve","pos":"動詞","ja":"（食事などを）出す、給仕する","ex":"serve wine"},{"level":3,"id":148,"word":"serve","pos":"動詞","ja":"役立つ、（〜として）務める","ex":"serve as"},{"level":3,"id":149,"word":"pour","pos":"動詞","ja":"注ぐ、（雨が）激しく降る","ex":"pour tea"},{"level":3,"id":150,"word":"spill","pos":"動詞・名詞","ja":"こぼす、こぼれる、流出","ex":"spill over"},{"level":4,"id":151,"word":"pretend","pos":"動詞","ja":"ふりをする、装う","ex":"pretend to"},{"level":4,"id":152,"word":"behave","pos":"動詞","ja":"ふるまう、行儀よくする","ex":"behave"},{"level":4,"id":153,"word":"bear","pos":"動詞","ja":"耐える、我慢する","ex":"cannot bear"},{"level":4,"id":153,"word":"bear","pos":"動詞","ja":"（責任を）負う、担う","ex":"bear the responsibility"},{"level":4,"id":154,"word":"explore","pos":"動詞","ja":"探検する、探求する","ex":"explore"},{"level":4,"id":155,"word":"happen","pos":"動詞","ja":"起こる、生じる","ex":"happened to her"},{"level":4,"id":155,"word":"happen","pos":"動詞","ja":"たまたま〜する（happen to）","ex":"happened to meet"},{"level":4,"id":156,"word":"appear","pos":"動詞","ja":"現れる","ex":"appeared"},{"level":4,"id":156,"word":"appear","pos":"動詞","ja":"〜のように見える、思われる","ex":"appears to be"},{"level":4,"id":157,"word":"remain","pos":"動詞","ja":"残る、〜のままである","ex":"remains"},{"level":4,"id":158,"word":"survive","pos":"動詞","ja":"生き延びる、生き残る","ex":"survive"},{"level":4,"id":159,"word":"belong","pos":"動詞","ja":"所属する、属する","ex":"belongs to"},{"level":4,"id":160,"word":"represent","pos":"動詞","ja":"代表する","ex":"represent Japan"},{"level":4,"id":160,"word":"represent","pos":"動詞","ja":"表す、象徴する","ex":"represents"},{"level":4,"id":161,"word":"base","pos":"動詞","ja":"（〜に）基づく","ex":"based on"},{"level":4,"id":161,"word":"base","pos":"名詞","ja":"基盤、基地、土台","ex":"a secret base"},{"level":4,"id":162,"word":"include","pos":"動詞","ja":"含む","ex":"includes"},{"level":4,"id":163,"word":"contain","pos":"動詞","ja":"含む","ex":"contains"},{"level":4,"id":163,"word":"contain","pos":"動詞","ja":"（感情を）抑える","ex":"contain my anger"},{"level":4,"id":164,"word":"own","pos":"形容詞","ja":"自分自身の","ex":"my own eyes"},{"level":4,"id":164,"word":"own","pos":"動詞","ja":"所有する","ex":"own companies"},{"level":4,"id":165,"word":"share","pos":"動詞","ja":"共有する、分かち合う","ex":"share with"},{"level":4,"id":165,"word":"share","pos":"名詞","ja":"分け前、取り分","ex":"a share of"},{"level":4,"id":166,"word":"collect","pos":"動詞","ja":"集める、回収する","ex":"collect"},{"level":4,"id":167,"word":"gather","pos":"動詞","ja":"集める、集まる","ex":"gather"},{"level":4,"id":168,"word":"history","pos":"名詞","ja":"歴史","ex":"in history"},{"level":4,"id":168,"word":"history","pos":"名詞","ja":"履歴、経歴","ex":"an update history"},{"level":4,"id":169,"word":"subject","pos":"名詞","ja":"科目","ex":"a required subject"},{"level":4,"id":169,"word":"subject","pos":"名詞","ja":"話題、主題、対象","ex":"the subject of"},{"level":4,"id":169,"word":"subject","pos":"形容詞","ja":"〜を受けやすい（subject to）","ex":"subject to change"},{"level":4,"id":170,"word":"education","pos":"名詞","ja":"教育","ex":"good education"},{"level":4,"id":171,"word":"range","pos":"名詞","ja":"範囲","ex":"a wide range of"},{"level":4,"id":172,"word":"uniform","pos":"名詞","ja":"制服","ex":"school uniform"},{"level":4,"id":172,"word":"uniform","pos":"形容詞","ja":"一定の、均一の","ex":"uniform temperature"},{"level":4,"id":173,"word":"grade","pos":"名詞","ja":"学年","ex":"the eighth grade"},{"level":4,"id":173,"word":"grade","pos":"名詞","ja":"等級、成績","ex":"a high grade"},{"level":4,"id":174,"word":"senior","pos":"名詞","ja":"年長者、最上級生","ex":"a college senior"},{"level":4,"id":174,"word":"senior","pos":"形容詞","ja":"上級の、先輩の","ex":"a senior manager"},{"level":4,"id":175,"word":"graduate","pos":"動詞","ja":"卒業する","ex":"graduate from"},{"level":4,"id":176,"word":"decide","pos":"動詞","ja":"決める、決心する","ex":"decide"},{"level":4,"id":177,"word":"judge","pos":"動詞","ja":"判断する、評価する","ex":"judge someone"},{"level":4,"id":177,"word":"judge","pos":"名詞","ja":"裁判官、審判","ex":"a judge"},{"level":4,"id":178,"word":"quit","pos":"動詞","ja":"やめる","ex":"quit my job"},{"level":4,"id":179,"word":"retire","pos":"動詞","ja":"退職する、引退する","ex":"retire"},{"level":4,"id":180,"word":"review","pos":"名詞","ja":"見直し、批評、書評","ex":"a review"},{"level":4,"id":180,"word":"review","pos":"動詞","ja":"復習する、再検討する","ex":"review the lesson"},{"level":4,"id":181,"word":"choose","pos":"動詞","ja":"選ぶ","ex":"choose"},{"level":4,"id":182,"word":"imagine","pos":"動詞","ja":"想像する","ex":"imagine"},{"level":4,"id":183,"word":"guess","pos":"名詞・動詞","ja":"推測（する）、言い当てる","ex":"guess"},{"level":4,"id":184,"word":"expect","pos":"動詞","ja":"予期する、期待する","ex":"expect"},{"level":4,"id":184,"word":"expect","pos":"動詞","ja":"妊娠している（be expecting）","ex":"she is expecting"},{"level":4,"id":185,"word":"predict","pos":"動詞","ja":"予測する、予言する","ex":"predict when"},{"level":4,"id":186,"word":"remember","pos":"動詞","ja":"覚えている、思い出す","ex":"remember meeting"},{"level":4,"id":186,"word":"remember","pos":"動詞","ja":"〜によろしく伝える（remember me to）","ex":"remember me to"},{"level":4,"id":187,"word":"remind","pos":"動詞","ja":"思い出させる、気づかせる","ex":"reminds of"},{"level":4,"id":188,"word":"realize","pos":"動詞","ja":"気づく、悟る","ex":"realized"},{"level":4,"id":188,"word":"realize","pos":"動詞","ja":"実現する","ex":"realized her dream"},{"level":4,"id":189,"word":"appreciate","pos":"動詞","ja":"感謝する","ex":"I\u0027d appreciate it"},{"level":4,"id":189,"word":"appreciate","pos":"動詞","ja":"正しく理解する、鑑賞する","ex":"appreciate the flavors"},{"level":4,"id":190,"word":"accept","pos":"動詞","ja":"受け入れる、受け取る","ex":"accept opinions"},{"level":4,"id":191,"word":"consider","pos":"動詞","ja":"よく考える、検討する","ex":"consider"},{"level":4,"id":191,"word":"consider","pos":"動詞","ja":"（〜と）みなす","ex":"consider it meaningless"},{"level":4,"id":192,"word":"mind","pos":"動詞","ja":"気にする、嫌がる","ex":"mind if"},{"level":4,"id":192,"word":"mind","pos":"名詞","ja":"心、精神、知性","ex":"the minds of"},{"level":4,"id":193,"word":"wonder","pos":"動詞","ja":"〜だろうかと思う、疑問に思う","ex":"wonder where"},{"level":4,"id":193,"word":"wonder","pos":"動詞","ja":"驚く、驚嘆する（wonder at）","ex":"wonder at"},{"level":4,"id":194,"word":"seem","pos":"動詞","ja":"〜のように思われる、〜らしい","ex":"seems to"},{"level":4,"id":195,"word":"compare","pos":"動詞","ja":"比較する","ex":"compare with"},{"level":4,"id":195,"word":"compare","pos":"動詞","ja":"例える（compare to）","ex":"compare to"},{"level":4,"id":196,"word":"concentrate","pos":"動詞","ja":"集中する","ex":"concentrate on"},{"level":4,"id":197,"word":"focus","pos":"動詞","ja":"焦点を当てる、集中する","ex":"focus on"},{"level":4,"id":197,"word":"focus","pos":"名詞","ja":"焦点、中心","ex":"the focus of"},{"level":4,"id":198,"word":"allow","pos":"動詞","ja":"許す、〜させておく","ex":"allow to"},{"level":4,"id":199,"word":"admit","pos":"動詞","ja":"（事実を）認める","ex":"admit that"},{"level":4,"id":199,"word":"admit","pos":"動詞","ja":"入れる、入学を許す","ex":"admitted to"},{"level":4,"id":200,"word":"ground","pos":"名詞","ja":"地面、土地","ex":"in the ground"},{"level":4,"id":200,"word":"ground","pos":"名詞","ja":"根拠、理由","ex":"on the grounds that"},{"level":5,"id":201,"word":"pollution","pos":"名詞","ja":"汚染、公害","ex":"marine pollution"},{"level":5,"id":202,"word":"sight","pos":"名詞","ja":"光景、眺め","ex":"a rare sight"},{"level":5,"id":202,"word":"sight","pos":"名詞","ja":"視力","ex":"recover my sight"},{"level":5,"id":203,"word":"view","pos":"名詞","ja":"眺め、景色、見方","ex":"night view of"},{"level":5,"id":203,"word":"view","pos":"動詞","ja":"みなす、考える","ex":"viewed as"},{"level":5,"id":204,"word":"landscape","pos":"名詞","ja":"風景、景色","ex":"the landscape of"},{"level":5,"id":204,"word":"landscape","pos":"名詞","ja":"（政治などの）情勢、全体像","ex":"political landscape"},{"level":5,"id":205,"word":"nature","pos":"名詞","ja":"自然","ex":"preserve nature"},{"level":5,"id":205,"word":"nature","pos":"名詞","ja":"本質、性質","ex":"the true nature of"},{"level":5,"id":206,"word":"seed","pos":"名詞","ja":"種","ex":"sunflower seeds"},{"level":5,"id":206,"word":"seed","pos":"名詞","ja":"（トーナメントの）シード","ex":"top seed"},{"level":5,"id":207,"word":"plant","pos":"名詞","ja":"植物","ex":"water a plant"},{"level":5,"id":207,"word":"plant","pos":"名詞","ja":"工場、設備","ex":"a chemical plant"},{"level":5,"id":207,"word":"plant","pos":"動詞","ja":"植える","ex":"plant tulips"},{"level":5,"id":208,"word":"bloom","pos":"動詞・名詞","ja":"咲く、開花、満開","ex":"bloomed"},{"level":5,"id":209,"word":"harvest","pos":"名詞・動詞","ja":"収穫（する）","ex":"rice harvest"},{"level":5,"id":210,"word":"insect","pos":"名詞","ja":"昆虫、虫","ex":"insects"},{"level":5,"id":211,"word":"earthquake","pos":"名詞","ja":"地震","ex":"there was an earthquake"},{"level":5,"id":212,"word":"temperature","pos":"名詞","ja":"温度、気温、体温","ex":"temperature"},{"level":5,"id":213,"word":"degree","pos":"名詞","ja":"（温度・角度の）度","ex":"zero degrees"},{"level":5,"id":213,"word":"degree","pos":"名詞","ja":"程度、度合い","ex":"to some degree"},{"level":5,"id":213,"word":"degree","pos":"名詞","ja":"学位","ex":"a degree in engineering"},{"level":5,"id":214,"word":"flood","pos":"名詞","ja":"洪水","ex":"the flood"},{"level":5,"id":214,"word":"flood","pos":"動詞","ja":"水浸しにする、氾濫する","ex":"flooded"},{"level":5,"id":215,"word":"freeze","pos":"動詞","ja":"凍る、凍らせる","ex":"freeze"},{"level":5,"id":216,"word":"reflect","pos":"動詞","ja":"反射する、反映する","ex":"reflect the sunlight"},{"level":5,"id":216,"word":"reflect","pos":"動詞","ja":"よく考える、熟考する（reflect on）","ex":"reflect on"},{"level":5,"id":217,"word":"polite","pos":"形容詞","ja":"礼儀正しい、丁寧な","ex":"a polite young man"},{"level":5,"id":218,"word":"rude","pos":"形容詞","ja":"無礼な、失礼な","ex":"rude"},{"level":5,"id":219,"word":"lonely","pos":"形容詞","ja":"孤独な、寂しい","ex":"lonely"},{"level":5,"id":220,"word":"lazy","pos":"形容詞","ja":"怠惰な、ものぐさな","ex":"lazy"},{"level":5,"id":221,"word":"strict","pos":"形容詞","ja":"厳しい、厳格な","ex":"a strict rule"},{"level":5,"id":222,"word":"ugly","pos":"形容詞","ja":"醜い、見苦しい","ex":"the ugly duckling"},{"level":5,"id":223,"word":"intelligent","pos":"形容詞","ja":"聡明な、知能の高い","ex":"highly intelligent"},{"level":5,"id":224,"word":"silly","pos":"形容詞","ja":"ばかな、愚かな","ex":"silly"},{"level":5,"id":225,"word":"nervous","pos":"形容詞","ja":"緊張した、神経質な","ex":"get nervous"},{"level":5,"id":225,"word":"nervous","pos":"形容詞","ja":"神経の","ex":"the nervous system"},{"level":5,"id":226,"word":"awake","pos":"形容詞","ja":"目が覚めて、眠らずに","ex":"awake"},{"level":5,"id":227,"word":"alone","pos":"副詞・形容詞","ja":"一人で、〜だけ","ex":"live alone"},{"level":5,"id":228,"word":"attitude","pos":"名詞","ja":"態度、姿勢","ex":"attitude toward"},{"level":5,"id":229,"word":"character","pos":"名詞","ja":"性格、個性","ex":"character"},{"level":5,"id":229,"word":"character","pos":"名詞","ja":"登場人物","ex":"the main character"},{"level":5,"id":229,"word":"character","pos":"名詞","ja":"文字","ex":"Chinese characters"},{"level":5,"id":230,"word":"characteristic","pos":"名詞","ja":"特徴、特色","ex":"characteristics"},{"level":5,"id":230,"word":"characteristic","pos":"形容詞","ja":"特有の、独特の","ex":"characteristic style"},{"level":5,"id":231,"word":"feature","pos":"名詞","ja":"特徴、特色、特集","ex":"a feature of"},{"level":5,"id":231,"word":"feature","pos":"動詞","ja":"呼び物にする、特集する","ex":"features paintings"},{"level":5,"id":232,"word":"detail","pos":"名詞","ja":"詳細、細部","ex":"details"},{"level":5,"id":233,"word":"advantage","pos":"名詞","ja":"利点、有利","ex":"advantages to"},{"level":5,"id":234,"word":"fault","pos":"名詞","ja":"欠点、過失、責任","ex":"my fault"},{"level":5,"id":234,"word":"fault","pos":"名詞","ja":"（地質の）断層","ex":"an active fault"},{"level":5,"id":235,"word":"quality","pos":"名詞","ja":"質、品質","ex":"the quality of life"},{"level":5,"id":235,"word":"quality","pos":"名詞","ja":"資質、素質","ex":"personal qualities"},{"level":5,"id":236,"word":"correct","pos":"形容詞","ja":"正しい、正確な","ex":"correct"},{"level":5,"id":236,"word":"correct","pos":"動詞","ja":"訂正する、直す","ex":"correct his pronunciation"},{"level":5,"id":237,"word":"ideal","pos":"形容詞","ja":"理想的な、申し分ない","ex":"an ideal place"},{"level":5,"id":237,"word":"ideal","pos":"名詞","ja":"理想","ex":"the ideal of"},{"level":5,"id":238,"word":"fair","pos":"形容詞","ja":"公平な、公正な","ex":"not fair"},{"level":5,"id":238,"word":"fair","pos":"名詞","ja":"見本市、博覧会","ex":"a trade fair"},{"level":5,"id":239,"word":"appropriate","pos":"形容詞","ja":"適切な、ふさわしい","ex":"appropriate for"},{"level":5,"id":240,"word":"famous","pos":"形容詞","ja":"有名な","ex":"famous for its"},{"level":5,"id":241,"word":"elementary","pos":"形容詞","ja":"初等の、初歩の","ex":"elementary school"},{"level":5,"id":242,"word":"major","pos":"形容詞","ja":"主要な、大きな","ex":"a major cause"},{"level":5,"id":242,"word":"major","pos":"名詞・動詞","ja":"専攻（する）","ex":"major in"},{"level":5,"id":243,"word":"matter","pos":"動詞","ja":"重要である、問題である","ex":"does not matter"},{"level":5,"id":243,"word":"matter","pos":"名詞","ja":"事柄、問題、物質","ex":"waste matter"},{"level":5,"id":244,"word":"bright","pos":"形容詞","ja":"明るい、輝いた","ex":"bright"},{"level":5,"id":244,"word":"bright","pos":"形容詞","ja":"利口な、聡明な","ex":"a bright child"},{"level":5,"id":245,"word":"brilliant","pos":"形容詞","ja":"光り輝く、すばらしい","ex":"brilliant"},{"level":5,"id":246,"word":"lively","pos":"形容詞","ja":"生き生きとした、活発な","ex":"lively conversation"},{"level":5,"id":247,"word":"comfortable","pos":"形容詞","ja":"快適な、心地よい","ex":"comfortable"},{"level":5,"id":248,"word":"pleasant","pos":"形容詞","ja":"楽しい、心地よい","ex":"pleasant"},{"level":5,"id":249,"word":"convenient","pos":"形容詞","ja":"便利な、都合のよい","ex":"convenient"},{"level":5,"id":250,"word":"false","pos":"形容詞","ja":"誤った、偽の","ex":"false information"},{"level":6,"id":251,"word":"terrible","pos":"形容詞","ja":"ひどい、苦手な","ex":"a terrible sense of direction"},{"level":6,"id":252,"word":"awful","pos":"形容詞","ja":"ひどい、不快な","ex":"an awful smell"},{"level":6,"id":253,"word":"thin","pos":"形容詞","ja":"薄い","ex":"a thin jacket"},{"level":6,"id":253,"word":"thin","pos":"形容詞","ja":"やせた","ex":"she is very thin"},{"level":6,"id":254,"word":"tight","pos":"形容詞","ja":"きつい、ぴんと張った","ex":"tight jeans"},{"level":6,"id":254,"word":"tight","pos":"形容詞","ja":"厳しい、厳重な","ex":"tight control"},{"level":6,"id":255,"word":"loose","pos":"形容詞","ja":"ゆるい、だぶだぶの","ex":"loose clothes"},{"level":6,"id":255,"word":"loose","pos":"動詞","ja":"解き放つ、自由にする","ex":"let loose"},{"level":6,"id":256,"word":"raw","pos":"形容詞","ja":"生の","ex":"raw fish"},{"level":6,"id":257,"word":"empty","pos":"形容詞","ja":"空の","ex":"an empty bottle"},{"level":6,"id":257,"word":"empty","pos":"動詞","ja":"空にする","ex":"empty his glass"},{"level":6,"id":258,"word":"smooth","pos":"形容詞","ja":"滑らかな、順調な","ex":"smooth skin"},{"level":6,"id":258,"word":"smooth","pos":"動詞","ja":"なめらかにする、なでつける","ex":"smooth back my hair"},{"level":6,"id":259,"word":"direct","pos":"形容詞","ja":"直接の、直行の","ex":"a direct flight"},{"level":6,"id":259,"word":"direct","pos":"動詞","ja":"指揮する、演出する、向ける","ex":"direct the play"},{"level":6,"id":260,"word":"familiar","pos":"形容詞","ja":"（〜に）よく知られている","ex":"familiar to"},{"level":6,"id":260,"word":"familiar","pos":"形容詞","ja":"（〜を）よく知っている、精通した","ex":"familiar with"},{"level":6,"id":261,"word":"similar","pos":"形容詞","ja":"似ている、類似した","ex":"similar to"},{"level":6,"id":262,"word":"differ","pos":"動詞","ja":"異なる","ex":"differ from"},{"level":6,"id":263,"word":"vary","pos":"動詞","ja":"さまざまである、異なる","ex":"varies from ... to ..."},{"level":6,"id":264,"word":"specific","pos":"形容詞","ja":"特定の、明確な、具体的な","ex":"specific instructions"},{"level":6,"id":265,"word":"common","pos":"形容詞","ja":"共通の、一般的な、ありふれた","ex":"a common ancestor"},{"level":6,"id":266,"word":"unusual","pos":"形容詞","ja":"珍しい、普通でない","ex":"it is not unusual for"},{"level":6,"id":267,"word":"add","pos":"動詞","ja":"加える、（add to）増す","ex":"add to"},{"level":6,"id":268,"word":"increase","pos":"名詞・動詞","ja":"増える、増加","ex":"increase by"},{"level":6,"id":269,"word":"reduce","pos":"動詞","ja":"減らす、減少させる","ex":"reduce the amount of"},{"level":6,"id":269,"word":"reduce","pos":"動詞","ja":"（be reduced to）〜に陥る","ex":"be reduced to poverty"},{"level":6,"id":270,"word":"divide","pos":"動詞","ja":"分ける、割る","ex":"divide into"},{"level":6,"id":271,"word":"count","pos":"動詞","ja":"数える","ex":"count the money"},{"level":6,"id":271,"word":"count","pos":"動詞","ja":"重要である","ex":"first impressions count"},{"level":6,"id":271,"word":"count","pos":"動詞","ja":"（count on）当てにする、頼る","ex":"counting on you"},{"level":6,"id":272,"word":"weigh","pos":"動詞","ja":"重さが〜ある、重さを量る","ex":"weigh 40 kilograms"},{"level":6,"id":272,"word":"weigh","pos":"動詞","ja":"（weigh against）比較検討する","ex":"weigh against"},{"level":6,"id":273,"word":"quarter","pos":"名詞","ja":"4分の1、（時刻の）15分","ex":"a quarter to ten"},{"level":6,"id":273,"word":"quarter","pos":"名詞","ja":"地区、地域","ex":"a student quarter"},{"level":6,"id":274,"word":"lot","pos":"名詞","ja":"（a lot of）たくさん、多数","ex":"a lot of dolphins"},{"level":6,"id":274,"word":"lot","pos":"名詞","ja":"運命、境遇","ex":"my lot"},{"level":6,"id":274,"word":"lot","pos":"名詞","ja":"（駐車場などの）区画","ex":"a parking lot"},{"level":6,"id":275,"word":"pile","pos":"名詞","ja":"山、積み重ね","ex":"a pile of"},{"level":6,"id":275,"word":"pile","pos":"動詞","ja":"積む、盛る","ex":"pile onto"},{"level":6,"id":276,"word":"rate","pos":"名詞","ja":"率、割合、料金","ex":"the birth rate"},{"level":6,"id":276,"word":"rate","pos":"動詞","ja":"評価する、みなす","ex":"rate as"},{"level":6,"id":277,"word":"figure","pos":"名詞","ja":"数字","ex":"a list of figures"},{"level":6,"id":277,"word":"figure","pos":"名詞","ja":"人物","ex":"a political figure"},{"level":6,"id":277,"word":"figure","pos":"名詞","ja":"図、挿絵；体つき","ex":"See Fig. 1"},{"level":6,"id":278,"word":"lack","pos":"名詞・動詞","ja":"不足（する）、欠く","ex":"lack of sleep"},{"level":6,"id":279,"word":"extra","pos":"形容詞","ja":"余分の、追加の","ex":"an extra charge"},{"level":6,"id":280,"word":"ready","pos":"形容詞","ja":"準備ができて、進んで〜する","ex":"be ready to"},{"level":6,"id":281,"word":"prepare","pos":"動詞","ja":"準備する、備える","ex":"prepare for"},{"level":6,"id":282,"word":"adjust","pos":"動詞","ja":"（〜に）順応する、慣れる","ex":"adjust to"},{"level":6,"id":282,"word":"adjust","pos":"動詞","ja":"調整する、調節する","ex":"adjust the temperature"},{"level":6,"id":283,"word":"apply","pos":"動詞","ja":"当てはまる、適用される","ex":"applies to"},{"level":6,"id":283,"word":"apply","pos":"動詞","ja":"（apply for）申し込む、志願する","ex":"apply for"},{"level":6,"id":283,"word":"apply","pos":"動詞","ja":"塗る、応用する","ex":"apply sunscreen"},{"level":6,"id":284,"word":"suit","pos":"動詞","ja":"都合がよい、似合う","ex":"suits you"},{"level":6,"id":284,"word":"suit","pos":"名詞","ja":"スーツ","ex":"a three-piece suit"},{"level":6,"id":284,"word":"suit","pos":"名詞","ja":"訴訟","ex":"file a suit against"},{"level":6,"id":285,"word":"case","pos":"名詞","ja":"場合、ケース","ex":"in some cases"},{"level":6,"id":285,"word":"case","pos":"名詞","ja":"事件、症例","ex":"a murder case"},{"level":6,"id":285,"word":"case","pos":"名詞","ja":"実情、事実、言い分","ex":"the case with"},{"level":6,"id":286,"word":"scene","pos":"名詞","ja":"場面、シーン、現場","ex":"a love scene"},{"level":6,"id":286,"word":"scene","pos":"名詞","ja":"分野、〜界","ex":"the music scene"},{"level":6,"id":287,"word":"chance","pos":"名詞","ja":"機会、チャンス","ex":"a chance to"},{"level":6,"id":287,"word":"chance","pos":"名詞","ja":"可能性、見込み","ex":"chance of"},{"level":6,"id":288,"word":"opportunity","pos":"名詞","ja":"機会、好機","ex":"a golden opportunity to"},{"level":6,"id":289,"word":"experience","pos":"名詞・動詞","ja":"経験（する）","ex":"learn from experience"},{"level":6,"id":290,"word":"time","pos":"名詞","ja":"時間、時","ex":"if you have time"},{"level":6,"id":290,"word":"time","pos":"名詞","ja":"回、度、〜倍","ex":"three times as ... as"},{"level":6,"id":290,"word":"time","pos":"名詞","ja":"時代（the times）","ex":"keep up with the times"},{"level":6,"id":291,"word":"spring","pos":"名詞","ja":"春","ex":"spring has come"},{"level":6,"id":291,"word":"spring","pos":"名詞","ja":"泉、温泉","ex":"a hot spring"},{"level":6,"id":291,"word":"spring","pos":"動詞","ja":"跳ねる、飛び出す","ex":"spring out of bed"},{"level":6,"id":292,"word":"minute","pos":"名詞","ja":"分、わずかの間","ex":"a ten-minute walk"},{"level":6,"id":292,"word":"minute","pos":"名詞","ja":"議事録","ex":"take the minutes"},{"level":6,"id":292,"word":"minute","pos":"形容詞","ja":"微小な、細かい","ex":"a minute fraction"},{"level":6,"id":293,"word":"age","pos":"名詞","ja":"年齢","ex":"middle age"},{"level":6,"id":293,"word":"age","pos":"名詞","ja":"時代","ex":"the Middle Ages"},{"level":6,"id":293,"word":"age","pos":"名詞","ja":"長い間（ages）","ex":"it\u0027s been ages"},{"level":6,"id":294,"word":"generation","pos":"名詞","ja":"世代","ex":"a generation gap"},{"level":6,"id":294,"word":"generation","pos":"名詞","ja":"発生、生成、発電","ex":"hydropower generation"},{"level":6,"id":295,"word":"anniversary","pos":"名詞","ja":"記念日、〜周年","ex":"the 100th anniversary"},{"level":6,"id":296,"word":"recently","pos":"副詞","ja":"最近","ex":"recently"},{"level":6,"id":297,"word":"used","pos":"助動詞相当","ja":"（used to）以前は〜した","ex":"used to drive"},{"level":6,"id":297,"word":"used","pos":"形容詞","ja":"（be used to）〜に慣れている","ex":"be used to getting up early"},{"level":6,"id":297,"word":"used","pos":"形容詞","ja":"中古の","ex":"a used car"},{"level":6,"id":298,"word":"early","pos":"形容詞・副詞","ja":"早い、早く、初期の","ex":"early in the morning"},{"level":6,"id":299,"word":"first","pos":"形容詞・副詞","ja":"最初の、初めて、まず第1に","ex":"for the first time"},{"level":6,"id":299,"word":"first","pos":"副詞","ja":"（at first）最初は、初めのうちは","ex":"at first"},{"level":6,"id":300,"word":"latest","pos":"形容詞","ja":"最新の","ex":"the latest fashions"},{"level":7,"id":301,"word":"modern","pos":"形容詞","ja":"現代の、近代的な","ex":"modern society"},{"level":7,"id":302,"word":"ancient","pos":"形容詞","ja":"古代の、大昔の","ex":"in ancient times"},{"level":7,"id":303,"word":"spend","pos":"動詞","ja":"（時間を）過ごす、（お金を）使う","ex":"spend reading"},{"level":7,"id":304,"word":"delay","pos":"名詞・動詞","ja":"遅らせる、遅れ","ex":"was delayed"},{"level":7,"id":305,"word":"borrow","pos":"動詞","ja":"借りる","ex":"borrow from the library"},{"level":7,"id":306,"word":"lend","pos":"動詞","ja":"貸す","ex":"lend me 10,000 yen"},{"level":7,"id":307,"word":"rent","pos":"動詞","ja":"賃借りする、賃貸しする","ex":"rents out"},{"level":7,"id":307,"word":"rent","pos":"名詞","ja":"家賃","ex":"pay a high rent"},{"level":7,"id":308,"word":"provide","pos":"動詞","ja":"供給する、与える","ex":"provide with"},{"level":7,"id":309,"word":"board","pos":"名詞","ja":"板","ex":"a board"},{"level":7,"id":309,"word":"board","pos":"名詞","ja":"委員会","ex":"a board of education"},{"level":7,"id":309,"word":"board","pos":"動詞","ja":"（乗り物に）乗り込む","ex":"board a bus"},{"level":7,"id":310,"word":"garbage","pos":"名詞","ja":"ごみ、生ごみ","ex":"garbage bags"},{"level":7,"id":311,"word":"item","pos":"名詞","ja":"品物、項目、（ニュースの）記事","ex":"items on the list"},{"level":7,"id":312,"word":"wheel","pos":"名詞","ja":"車輪、ハンドル","ex":"the front wheel"},{"level":7,"id":312,"word":"wheel","pos":"動詞","ja":"（車輪付きのものを）動かす","ex":"wheel a cart"},{"level":7,"id":313,"word":"note","pos":"名詞","ja":"メモ、覚え書き","ex":"take notes"},{"level":7,"id":313,"word":"note","pos":"名詞","ja":"紙幣","ex":"a 50-pound note"},{"level":7,"id":313,"word":"note","pos":"動詞","ja":"指摘する、注意する","ex":"note that"},{"level":7,"id":314,"word":"present","pos":"名詞","ja":"贈り物","ex":"open the present"},{"level":7,"id":314,"word":"present","pos":"名詞・形容詞","ja":"現在（の）、出席して","ex":"my present job"},{"level":7,"id":314,"word":"present","pos":"動詞","ja":"贈る、提示する","ex":"present with an award"},{"level":7,"id":315,"word":"bargain","pos":"名詞","ja":"お買い得品、掘り出し物","ex":"a good bargain"},{"level":7,"id":315,"word":"bargain","pos":"動詞","ja":"交渉する、値切る","ex":"bargain for better pay"},{"level":7,"id":316,"word":"stuff","pos":"名詞","ja":"物、もの","ex":"lift heavy stuff"},{"level":7,"id":316,"word":"stuff","pos":"動詞","ja":"詰める、詰め込む","ex":"stuffed with rice"},{"level":7,"id":317,"word":"string","pos":"名詞","ja":"ひも、糸","ex":"tie up with string"},{"level":7,"id":317,"word":"string","pos":"名詞","ja":"一連の；弦","ex":"a string of questions"},{"level":7,"id":318,"word":"leisure","pos":"名詞","ja":"余暇、レジャー","ex":"enjoy my leisure"},{"level":7,"id":319,"word":"diet","pos":"名詞","ja":"食事、ダイエット","ex":"on a diet"},{"level":7,"id":319,"word":"diet","pos":"名詞","ja":"（the Diet）国会","ex":"a Diet member"},{"level":7,"id":320,"word":"furniture","pos":"名詞","ja":"家具","ex":"a set of furniture"},{"level":7,"id":321,"word":"refrigerator","pos":"名詞","ja":"冷蔵庫","ex":"put in the refrigerator"},{"level":7,"id":322,"word":"traffic","pos":"名詞","ja":"交通、交通量","ex":"little traffic"},{"level":7,"id":323,"word":"sell","pos":"動詞","ja":"売る、売れる","ex":"sell well"},{"level":7,"id":324,"word":"pay","pos":"動詞","ja":"払う、支払う","ex":"pay for the book"},{"level":7,"id":324,"word":"pay","pos":"動詞","ja":"割に合う、引き合う","ex":"honesty does not pay"},{"level":7,"id":324,"word":"pay","pos":"名詞","ja":"給料、報酬","ex":"paid vacation"},{"level":7,"id":325,"word":"wear","pos":"動詞","ja":"着ている、身につけている","ex":"wear contact lenses"},{"level":7,"id":325,"word":"wear","pos":"動詞","ja":"すり減る、すり切れる","ex":"badly worn"},{"level":7,"id":326,"word":"clothes","pos":"名詞","ja":"衣服、服","ex":"change my clothes"},{"level":7,"id":327,"word":"marry","pos":"動詞","ja":"結婚する","ex":"will you marry me"},{"level":7,"id":328,"word":"greet","pos":"動詞","ja":"挨拶する、出迎える","ex":"greet each other"},{"level":7,"id":329,"word":"order","pos":"名詞・動詞","ja":"注文（する）","ex":"place an order"},{"level":7,"id":329,"word":"order","pos":"名詞・動詞","ja":"命令（する）","ex":"order him to"},{"level":7,"id":329,"word":"order","pos":"名詞","ja":"順序、秩序","ex":"in alphabetical order"},{"level":7,"id":330,"word":"room","pos":"名詞","ja":"部屋","ex":"book a room"},{"level":7,"id":330,"word":"room","pos":"名詞","ja":"余地、空間","ex":"room for dessert"},{"level":7,"id":331,"word":"story","pos":"名詞","ja":"話、物語","ex":"a story"},{"level":7,"id":331,"word":"story","pos":"名詞","ja":"（建物の）階","ex":"a two-hundred-story skyscraper"},{"level":7,"id":332,"word":"site","pos":"名詞","ja":"用地、場所、現場、跡地","ex":"a construction site"},{"level":7,"id":333,"word":"yard","pos":"名詞","ja":"庭","ex":"our yard"},{"level":7,"id":333,"word":"yard","pos":"名詞","ja":"ヤード（長さの単位）","ex":"300 yards"},{"level":7,"id":334,"word":"bottom","pos":"名詞","ja":"底、下部","ex":"the bottom of the sea"},{"level":7,"id":334,"word":"bottom","pos":"名詞","ja":"（体の）尻","ex":"fall on my bottom"},{"level":7,"id":335,"word":"line","pos":"名詞","ja":"列、行列","ex":"stand in line"},{"level":7,"id":335,"word":"line","pos":"名詞","ja":"線","ex":"the dotted line"},{"level":7,"id":335,"word":"line","pos":"名詞","ja":"セリフ；（電話の）回線","ex":"practice my lines"},{"level":7,"id":336,"word":"row","pos":"名詞","ja":"列、横列","ex":"in the back row"},{"level":7,"id":336,"word":"row","pos":"動詞","ja":"（ボートを）こぐ","ex":"row a boat"},{"level":7,"id":337,"word":"background","pos":"名詞","ja":"背景","ex":"in the background"},{"level":7,"id":337,"word":"background","pos":"名詞","ja":"経歴、生い立ち","ex":"different backgrounds"},{"level":7,"id":338,"word":"direction","pos":"名詞","ja":"方向","ex":"the opposite direction"},{"level":7,"id":338,"word":"direction","pos":"名詞","ja":"指示、道順","ex":"ask for directions"},{"level":7,"id":339,"word":"culture","pos":"名詞","ja":"文化、教養","ex":"foreign cultures"},{"level":7,"id":339,"word":"culture","pos":"名詞","ja":"培養","ex":"a culture of bacteria"},{"level":7,"id":340,"word":"art","pos":"名詞","ja":"芸術","ex":"modern art"},{"level":7,"id":340,"word":"art","pos":"名詞","ja":"技術、こつ、（liberal arts）教養","ex":"the art of conversation"},{"level":7,"id":341,"word":"cartoon","pos":"名詞","ja":"漫画、アニメ","ex":"animated cartoons"},{"level":7,"id":342,"word":"novel","pos":"名詞","ja":"小説","ex":"the plot of this novel"},{"level":7,"id":342,"word":"novel","pos":"形容詞","ja":"斬新な、目新しい","ex":"a novel idea"},{"level":7,"id":343,"word":"instrument","pos":"名詞","ja":"楽器","ex":"a musical instrument"},{"level":7,"id":343,"word":"instrument","pos":"名詞","ja":"器具、道具","ex":"a medical instrument"},{"level":7,"id":344,"word":"tune","pos":"名詞","ja":"曲、メロディー","ex":"a nice tune"},{"level":7,"id":344,"word":"tune","pos":"動詞","ja":"調律する、（チャンネルを）合わせる","ex":"tune in to"},{"level":7,"id":345,"word":"sentence","pos":"名詞","ja":"文","ex":"delete the sentence"},{"level":7,"id":345,"word":"sentence","pos":"名詞・動詞","ja":"判決（を下す）、刑","ex":"be sentenced to five years"},{"level":7,"id":346,"word":"article","pos":"名詞","ja":"記事","ex":"a magazine article on"},{"level":7,"id":346,"word":"article","pos":"名詞","ja":"品物、1点","ex":"an article of furniture"},{"level":7,"id":346,"word":"article","pos":"名詞","ja":"（法律の）条項、（文法の）冠詞","ex":"Article 9"},{"level":7,"id":347,"word":"passage","pos":"名詞","ja":"一節、一文","ex":"a passage from the Bible"},{"level":7,"id":347,"word":"passage","pos":"名詞","ja":"経過、通過","ex":"the passage of time"},{"level":7,"id":348,"word":"vocabulary","pos":"名詞","ja":"語彙","ex":"increase my vocabulary"},{"level":7,"id":349,"word":"rumor","pos":"名詞","ja":"うわさ","ex":"rumors about him spread"},{"level":7,"id":350,"word":"spell","pos":"動詞","ja":"つづる、つづりを言う","ex":"how do you spell it"},{"level":7,"id":350,"word":"spell","pos":"名詞","ja":"呪文、魔法","ex":"cast a spell on"},{"level":7,"id":350,"word":"spell","pos":"名詞","ja":"（ある一続きの）期間","ex":"a spell of bad luck"},{"level":8,"id":351,"word":"pronounce","pos":"動詞","ja":"発音する","ex":"pronounce your name"},{"level":8,"id":351,"word":"pronounce","pos":"動詞","ja":"宣告する、断言する","ex":"pronounce a sentence"},{"level":8,"id":352,"word":"sign","pos":"名詞","ja":"兆候、しるし","ex":"signs of recovery"},{"level":8,"id":352,"word":"sign","pos":"名詞","ja":"標識、看板","ex":"a sign saying ..."},{"level":8,"id":352,"word":"sign","pos":"動詞","ja":"署名する、サインする","ex":"sign an autograph"},{"level":8,"id":353,"word":"mean","pos":"動詞","ja":"意味する","ex":"what does that mean"},{"level":8,"id":353,"word":"mean","pos":"動詞","ja":"（mean to）〜するつもりである","ex":"mean to"},{"level":8,"id":353,"word":"mean","pos":"形容詞","ja":"意地悪な、卑劣な","ex":"don\u0027t be so mean"},{"level":8,"id":354,"word":"publish","pos":"動詞","ja":"出版する、発表する","ex":"is published"},{"level":8,"id":355,"word":"display","pos":"動詞","ja":"展示する、（実力を）発揮する","ex":"display the fashions"},{"level":8,"id":355,"word":"display","pos":"名詞","ja":"展示、陳列、（花火）大会","ex":"a fireworks display"},{"level":8,"id":356,"word":"trust","pos":"動詞・名詞","ja":"信頼（する）","ex":"put my trust in"},{"level":8,"id":357,"word":"depend","pos":"動詞","ja":"（〜に）頼る、〜次第である","ex":"depends on"},{"level":8,"id":358,"word":"rely","pos":"動詞","ja":"（rely on）頼る、当てにする","ex":"rely on him"},{"level":8,"id":359,"word":"pray","pos":"動詞","ja":"祈る","ex":"pray for her safety"},{"level":8,"id":360,"word":"beg","pos":"動詞","ja":"頼む、懇願する、ねだる","ex":"beg for food"},{"level":8,"id":361,"word":"prefer","pos":"動詞","ja":"（prefer A to B）〜のほうを好む","ex":"prefer beef to chicken"},{"level":8,"id":362,"word":"weep","pos":"動詞","ja":"泣く、涙を流す","ex":"all America wept"},{"level":8,"id":363,"word":"hate","pos":"動詞","ja":"嫌う、憎む","ex":"hate doing housework"},{"level":8,"id":364,"word":"worry","pos":"名詞・動詞","ja":"心配（する）、悩み","ex":"worry about"},{"level":8,"id":365,"word":"anxious","pos":"形容詞","ja":"心配して、不安で","ex":"anxious about her health"},{"level":8,"id":365,"word":"anxious","pos":"形容詞","ja":"（anxious to）〜したいと切望して","ex":"is anxious to"},{"level":8,"id":366,"word":"satisfy","pos":"動詞","ja":"満足させる","ex":"satisfied with"},{"level":8,"id":366,"word":"satisfy","pos":"動詞","ja":"（要求・必要を）満たす","ex":"satisfy the needs"},{"level":8,"id":367,"word":"annoy","pos":"動詞","ja":"いらだたせる、悩ませる","ex":"it annoys me when"},{"level":8,"id":368,"word":"bother","pos":"動詞","ja":"悩ます、迷惑をかける、わざわざ〜する","ex":"bother to"},{"level":8,"id":368,"word":"bother","pos":"名詞","ja":"面倒、やっかい","ex":"find it a bother"},{"level":8,"id":369,"word":"disturb","pos":"動詞","ja":"邪魔する、妨げる","ex":"disturb my sleep"},{"level":8,"id":370,"word":"frighten","pos":"動詞","ja":"おびえさせる、怖がらせる","ex":"am frightened of"},{"level":8,"id":371,"word":"regret","pos":"動詞","ja":"後悔する、残念に思う","ex":"regret that"},{"level":8,"id":371,"word":"regret","pos":"名詞","ja":"後悔、遺憾","ex":"have no regrets"},{"level":8,"id":372,"word":"favor","pos":"名詞","ja":"親切な行為、頼み","ex":"do me a favor"},{"level":8,"id":372,"word":"favor","pos":"名詞","ja":"賛成、支持（in favor of）","ex":"in favor of"},{"level":8,"id":373,"word":"interest","pos":"名詞","ja":"興味、関心","ex":"have an interest in"},{"level":8,"id":373,"word":"interest","pos":"名詞","ja":"利益、ため","ex":"in your best interests"},{"level":8,"id":373,"word":"interest","pos":"名詞","ja":"利子","ex":"interest on a loan"},{"level":8,"id":374,"word":"pity","pos":"名詞","ja":"残念なこと","ex":"it is a pity that"},{"level":8,"id":374,"word":"pity","pos":"名詞","ja":"哀れみ、同情","ex":"feel pity for"},{"level":8,"id":375,"word":"due","pos":"前置詞句","ja":"（due to）〜が原因で","ex":"due to the storm"},{"level":8,"id":375,"word":"due","pos":"形容詞","ja":"期限が来て、〜する予定で","ex":"is due to arrive"},{"level":8,"id":376,"word":"reason","pos":"名詞","ja":"理由","ex":"for the following reasons"},{"level":8,"id":376,"word":"reason","pos":"名詞・動詞","ja":"理性；推論する","ex":"reasoned that"},{"level":8,"id":377,"word":"result","pos":"名詞","ja":"結果","ex":"as a result of"},{"level":8,"id":377,"word":"result","pos":"動詞","ja":"（result in/from）結果として生じる、起因する","ex":"resulted in success"},{"level":8,"id":378,"word":"effect","pos":"名詞","ja":"影響、効果","ex":"have a bad effect on"},{"level":8,"id":379,"word":"influence","pos":"名詞・動詞","ja":"影響（を与える）","ex":"have a strong influence on"},{"level":8,"id":380,"word":"end","pos":"名詞","ja":"終わり","ex":"the end of May"},{"level":8,"id":380,"word":"end","pos":"動詞","ja":"（end up）結局〜になる；目的","ex":"ended up spending"},{"level":8,"id":381,"word":"cause","pos":"名詞・動詞","ja":"引き起こす、原因","ex":"cause trouble"},{"level":8,"id":382,"word":"affect","pos":"動詞","ja":"影響を与える","ex":"seriously affects"},{"level":8,"id":383,"word":"way","pos":"名詞","ja":"方法、やり方","ex":"my way of studying"},{"level":8,"id":383,"word":"way","pos":"名詞","ja":"道、距離","ex":"go all the way to Tokyo"},{"level":8,"id":383,"word":"way","pos":"副詞","ja":"（way above）はるかに、ずっと","ex":"way above average"},{"level":8,"id":384,"word":"manner","pos":"名詞","ja":"方法、態度、物腰","ex":"in a responsible manner"},{"level":8,"id":384,"word":"manner","pos":"名詞","ja":"（manners）行儀、作法","ex":"have no manners"},{"level":8,"id":385,"word":"purpose","pos":"名詞","ja":"目的","ex":"the purpose of"},{"level":8,"id":386,"word":"sake","pos":"名詞","ja":"（for the sake of）〜のため","ex":"for the sake of"},{"level":8,"id":386,"word":"sake","pos":"名詞","ja":"日本酒","ex":"sake is popular"},{"level":8,"id":387,"word":"right","pos":"形容詞・副詞","ja":"正しい、まさに、ちょうど","ex":"you are right"},{"level":8,"id":387,"word":"right","pos":"形容詞","ja":"右（の）","ex":"my right hand"},{"level":8,"id":387,"word":"right","pos":"名詞","ja":"権利","ex":"the right to vote"},{"level":8,"id":388,"word":"complete","pos":"形容詞","ja":"完全な、まったくの","ex":"a complete stranger"},{"level":8,"id":388,"word":"complete","pos":"動詞","ja":"完成させる、仕上げる","ex":"took ten years to complete"},{"level":8,"id":389,"word":"hardly","pos":"副詞","ja":"ほとんど〜ない","ex":"can hardly wait"},{"level":8,"id":390,"word":"almost","pos":"副詞","ja":"ほとんど、もう少しで","ex":"almost every day"},{"level":8,"id":391,"word":"partly","pos":"副詞","ja":"部分的に、一部は","ex":"partly to blame"},{"level":8,"id":392,"word":"indeed","pos":"副詞","ja":"実に、本当に、確かに","ex":"indeed a kind person"},{"level":8,"id":393,"word":"even","pos":"副詞","ja":"〜でさえ、さらに","ex":"even more difficult"},{"level":8,"id":393,"word":"even","pos":"形容詞","ja":"偶数の","ex":"even numbers"},{"level":8,"id":393,"word":"even","pos":"形容詞","ja":"平らな、均等な","ex":"even teeth"},{"level":8,"id":394,"word":"exactly","pos":"副詞","ja":"正確に、まさに、そのとおり","ex":"where exactly"},{"level":8,"id":395,"word":"gradually","pos":"副詞","ja":"徐々に、次第に","ex":"gradually increasing"},{"level":8,"id":396,"word":"therefore","pos":"副詞","ja":"それゆえに、したがって","ex":"and therefore"},{"level":8,"id":397,"word":"instead","pos":"副詞","ja":"その代わりに（instead of＝〜の代わりに）","ex":"instead of"},{"level":8,"id":398,"word":"until","pos":"前置詞・接続詞","ja":"〜まで（ずっと）","ex":"until 11 p.m."},{"level":8,"id":399,"word":"besides","pos":"前置詞・副詞","ja":"〜に加えて、その上","ex":"besides English"},{"level":8,"id":400,"word":"except","pos":"前置詞","ja":"（except for）〜を除いて","ex":"except for"},{"level":9,"id":401,"word":"debate","pos":"名詞・動詞","ja":"討論（する）、議論","ex":"the debate on whaling"},{"level":9,"id":402,"word":"criticize","pos":"動詞","ja":"批判する、非難する","ex":"criticizing my cooking"},{"level":9,"id":403,"word":"accuse","pos":"動詞","ja":"（accuse of）非難する、告訴する","ex":"accuse of"},{"level":9,"id":404,"word":"insist","pos":"動詞","ja":"主張する、言い張る、要求する","ex":"insist on"},{"level":9,"id":405,"word":"object","pos":"動詞","ja":"（object to）反対する","ex":"object to"},{"level":9,"id":405,"word":"object","pos":"名詞","ja":"物、物体","ex":"a solid object"},{"level":9,"id":405,"word":"object","pos":"名詞","ja":"目的、対象","ex":"the object of this game"},{"level":9,"id":406,"word":"protest","pos":"名詞・動詞","ja":"抗議（する）","ex":"protest against"},{"level":9,"id":407,"word":"controversial","pos":"形容詞","ja":"論争を呼ぶ、物議をかもす","ex":"a controversial issue"},{"level":9,"id":408,"word":"bound","pos":"形容詞","ja":"（be bound to）きっと〜する、必ず〜する","ex":"is bound to"},{"level":9,"id":408,"word":"bound","pos":"形容詞","ja":"（bound for）〜行きの","ex":"bound for Tokyo"},{"level":9,"id":409,"word":"bet","pos":"動詞","ja":"賭ける、きっと〜だと思う","ex":"bet 500 yen"},{"level":9,"id":410,"word":"demand","pos":"名詞・動詞","ja":"要求（する）","ex":"demand an apology"},{"level":9,"id":410,"word":"demand","pos":"名詞","ja":"需要","ex":"supply and demand"},{"level":9,"id":411,"word":"desire","pos":"名詞・動詞","ja":"願望、強く望む","ex":"have a desire to"},{"level":9,"id":412,"word":"praise","pos":"動詞・名詞","ja":"褒める、賞賛","ex":"praise for"},{"level":9,"id":413,"word":"honor","pos":"名詞","ja":"名誉、光栄","ex":"an honor to be here"},{"level":9,"id":413,"word":"honor","pos":"動詞","ja":"敬う、尊敬する","ex":"honor my parents"},{"level":9,"id":414,"word":"chat","pos":"名詞・動詞","ja":"おしゃべり（する）、雑談","ex":"chat over tea"},{"level":9,"id":415,"word":"refer","pos":"動詞","ja":"（refer to）言及する、指す、参照する","ex":"refer to"},{"level":9,"id":416,"word":"mention","pos":"動詞","ja":"言及する、述べる","ex":"mention it"},{"level":9,"id":417,"word":"convey","pos":"動詞","ja":"（考え・気持ちを）伝える","ex":"convey my feelings"},{"level":9,"id":417,"word":"convey","pos":"動詞","ja":"運ぶ、運搬する","ex":"blood is conveyed"},{"level":9,"id":418,"word":"demonstrate","pos":"動詞","ja":"実演する、（実力を）示す、証明する","ex":"demonstrate my real ability"},{"level":9,"id":419,"word":"emphasize","pos":"動詞","ja":"強調する","ex":"emphasize the importance of"},{"level":9,"id":420,"word":"exaggerate","pos":"動詞","ja":"大げさに言う、誇張する","ex":"exaggerate a story"},{"level":9,"id":421,"word":"reply","pos":"名詞・動詞","ja":"返事（をする）、回答","ex":"look forward to your reply"},{"level":9,"id":422,"word":"respond","pos":"動詞","ja":"（respond to）答える、反応する、対応する","ex":"respond to"},{"level":9,"id":423,"word":"whisper","pos":"名詞・動詞","ja":"ささやく、ささやき声","ex":"in a whisper"},{"level":9,"id":424,"word":"remark","pos":"名詞・動詞","ja":"発言、述べる","ex":"a casual remark"},{"level":9,"id":425,"word":"observe","pos":"動詞","ja":"観察する","ex":"observe the behavior of birds"},{"level":9,"id":425,"word":"observe","pos":"動詞","ja":"（規則を）守る、遵守する","ex":"observe the regulations"},{"level":9,"id":425,"word":"observe","pos":"動詞","ja":"述べる；（儀式を）祝う","ex":"observe that"},{"level":9,"id":426,"word":"theory","pos":"名詞","ja":"理論、学説","ex":"in theory"},{"level":9,"id":427,"word":"analysis","pos":"名詞","ja":"分析","ex":"handwriting analysis"},{"level":9,"id":428,"word":"phenomenon","pos":"名詞","ja":"現象、驚異的なもの","ex":"natural phenomena"},{"level":9,"id":429,"word":"device","pos":"名詞","ja":"装置、機器","ex":"a GPS device"},{"level":9,"id":430,"word":"experiment","pos":"名詞・動詞","ja":"実験（する）","ex":"carry out an experiment"},{"level":9,"id":431,"word":"chemical","pos":"名詞","ja":"化学物質、薬品","ex":"harmful chemicals"},{"level":9,"id":431,"word":"chemical","pos":"形容詞","ja":"化学の","ex":"a chemical symbol"},{"level":9,"id":432,"word":"fuel","pos":"名詞","ja":"燃料","ex":"fossil fuels"},{"level":9,"id":432,"word":"fuel","pos":"動詞","ja":"あおる、増大させる","ex":"fuel her fear"},{"level":9,"id":433,"word":"nuclear","pos":"形容詞","ja":"原子力の、核の","ex":"a nuclear power plant"},{"level":9,"id":434,"word":"statistics","pos":"名詞","ja":"統計、統計学","ex":"statistics show that"},{"level":9,"id":435,"word":"pursue","pos":"動詞","ja":"追求する、（仕事に）従事する、追いかける","ex":"pursue a career"},{"level":9,"id":436,"word":"accomplish","pos":"動詞","ja":"成し遂げる、達成する","ex":"accomplish this task"},{"level":9,"id":437,"word":"overcome","pos":"動詞","ja":"克服する、打ち勝つ","ex":"overcome my shyness"},{"level":9,"id":438,"word":"fulfill","pos":"動詞","ja":"果たす、実現する、（要求を）満たす","ex":"fulfill a dream"},{"level":9,"id":439,"word":"devote","pos":"動詞","ja":"（devote to）ささげる、専念する","ex":"devote my life to"},{"level":9,"id":440,"word":"strive","pos":"動詞","ja":"（strive to）努力する、励む","ex":"strive to cut costs"},{"level":9,"id":441,"word":"aim","pos":"動詞","ja":"目指す、狙う（be aimed at＝対象とする）","ex":"aim to"},{"level":9,"id":441,"word":"aim","pos":"名詞","ja":"狙い、目的","ex":"the aim of this course"},{"level":9,"id":442,"word":"challenge","pos":"名詞","ja":"課題、難題","ex":"face a big challenge"},{"level":9,"id":442,"word":"challenge","pos":"動詞","ja":"異議を唱える、挑む","ex":"challenge the decision"},{"level":9,"id":443,"word":"trial","pos":"名詞","ja":"試み、試行","ex":"by trial and error"},{"level":9,"id":443,"word":"trial","pos":"名詞","ja":"裁判；試練","ex":"stand trial for murder"},{"level":9,"id":444,"word":"dizzy","pos":"形容詞","ja":"めまいがする、ふらふらする","ex":"felt dizzy"},{"level":9,"id":445,"word":"appetite","pos":"名詞","ja":"食欲","ex":"have a hearty appetite"},{"level":9,"id":446,"word":"starve","pos":"動詞","ja":"飢える、餓死する、腹がぺこぺこである","ex":"starving to death"},{"level":9,"id":447,"word":"mental","pos":"形容詞","ja":"精神の、心の、知的な","ex":"mental health"},{"level":9,"id":448,"word":"rest","pos":"名詞・動詞","ja":"休憩、休む","ex":"take a rest"},{"level":9,"id":448,"word":"rest","pos":"名詞","ja":"残り、その他","ex":"the rest of the day"},{"level":9,"id":448,"word":"rest","pos":"動詞","ja":"（rest on）〜次第である、頼る","ex":"rests on his ability"},{"level":9,"id":449,"word":"surgery","pos":"名詞","ja":"手術、外科","ex":"have surgery"},{"level":9,"id":450,"word":"disease","pos":"名詞","ja":"病気","ex":"heart disease"},{"level":10,"id":451,"word":"stomachache","pos":"名詞","ja":"腹痛","ex":"a sudden stomachache"},{"level":10,"id":452,"word":"symptom","pos":"名詞","ja":"症状、兆候","ex":"the symptoms of heatstroke"},{"level":10,"id":453,"word":"cancer","pos":"名詞","ja":"がん","ex":"get cancer"},{"level":10,"id":454,"word":"ambulance","pos":"名詞","ja":"救急車","ex":"fire engines and ambulances"},{"level":10,"id":455,"word":"recover","pos":"動詞","ja":"（〜から）回復する","ex":"recover from a heart attack"},{"level":10,"id":455,"word":"recover","pos":"動詞","ja":"取り戻す、回収する","ex":"recover the stolen paintings"},{"level":10,"id":456,"word":"sore","pos":"形容詞","ja":"痛い、ひりひりする","ex":"have a sore throat"},{"level":10,"id":457,"word":"swell","pos":"動詞","ja":"腫れる、膨らむ","ex":"swelled up"},{"level":10,"id":458,"word":"cough","pos":"名詞・動詞","ja":"咳（をする）","ex":"have a bad cough"},{"level":10,"id":459,"word":"bleed","pos":"動詞","ja":"出血する、血を流す","ex":"my nose started to bleed"},{"level":10,"id":460,"word":"faint","pos":"形容詞","ja":"かすかな、ぼんやりした","ex":"faint pencil lines"},{"level":10,"id":460,"word":"faint","pos":"動詞","ja":"気絶する、卒倒する","ex":"faint in the heat"},{"level":10,"id":461,"word":"exhaust","pos":"動詞","ja":"疲れ果てさせる、使い果たす","ex":"am exhausted from"},{"level":10,"id":461,"word":"exhaust","pos":"名詞","ja":"排気（ガス）","ex":"exhaust fumes"},{"level":10,"id":462,"word":"cure","pos":"動詞・名詞","ja":"治す、治療（法）","ex":"a cure for a headache"},{"level":10,"id":463,"word":"disabled","pos":"形容詞","ja":"障害のある（the disabled＝障害者）","ex":"physically disabled"},{"level":10,"id":464,"word":"stiff","pos":"形容詞","ja":"こわばった、硬い、堅苦しい","ex":"a stiff back"},{"level":10,"id":465,"word":"muscle","pos":"名詞","ja":"筋肉","ex":"develop muscles"},{"level":10,"id":466,"word":"tongue","pos":"名詞","ja":"舌","ex":"stick my tongue out"},{"level":10,"id":466,"word":"tongue","pos":"名詞","ja":"言葉、言葉遣い","ex":"watch your tongue"},{"level":10,"id":467,"word":"sense","pos":"名詞","ja":"感覚、意味","ex":"in a broad sense"},{"level":10,"id":467,"word":"sense","pos":"名詞","ja":"分別、良識","ex":"common sense"},{"level":10,"id":467,"word":"sense","pos":"動詞","ja":"感じる、気づく","ex":"sense that something is wrong"},{"level":10,"id":468,"word":"sweat","pos":"名詞・動詞","ja":"汗（をかく）","ex":"sweat a lot"},{"level":10,"id":469,"word":"gender","pos":"名詞","ja":"性、性別","ex":"age or gender"},{"level":10,"id":470,"word":"nationality","pos":"名詞","ja":"国籍","ex":"what is your nationality"},{"level":10,"id":471,"word":"citizen","pos":"名詞","ja":"市民、国民","ex":"senior citizens"},{"level":10,"id":472,"word":"civil","pos":"形容詞","ja":"市民の、公民の、民間の","ex":"civil rights"},{"level":10,"id":472,"word":"civil","pos":"形容詞","ja":"礼儀正しい、丁寧な","ex":"civil but not friendly"},{"level":10,"id":473,"word":"racial","pos":"形容詞","ja":"人種の、民族の","ex":"racial discrimination"},{"level":10,"id":474,"word":"rural","pos":"形容詞","ja":"田舎の、地方の","ex":"a rural lifestyle"},{"level":10,"id":475,"word":"domestic","pos":"形容詞","ja":"国内の","ex":"a domestic flight"},{"level":10,"id":475,"word":"domestic","pos":"形容詞","ja":"家庭の","ex":"domestic violence"},{"level":10,"id":476,"word":"global","pos":"形容詞","ja":"世界的な、地球規模の","ex":"global climate change"},{"level":10,"id":477,"word":"suburb","pos":"名詞","ja":"郊外","ex":"in the suburbs"},{"level":10,"id":478,"word":"border","pos":"名詞","ja":"国境、境界","ex":"cross the border"},{"level":10,"id":478,"word":"border","pos":"動詞","ja":"接する、縁取る","ex":"bordered by trees"},{"level":10,"id":479,"word":"burden","pos":"名詞","ja":"負担、重荷","ex":"a financial burden"},{"level":10,"id":480,"word":"impact","pos":"名詞","ja":"影響、衝撃","ex":"a negative impact on"},{"level":10,"id":480,"word":"impact","pos":"動詞","ja":"影響を与える","ex":"impacted on sales"},{"level":10,"id":481,"word":"status","pos":"名詞","ja":"地位、身分","ex":"social status"},{"level":10,"id":481,"word":"status","pos":"名詞","ja":"状況、状態","ex":"shipment status"},{"level":10,"id":482,"word":"equal","pos":"形容詞・動詞","ja":"平等な、等しい、〜に等しい","ex":"all are created equal"},{"level":10,"id":483,"word":"relationship","pos":"名詞","ja":"関係、間柄、交際","ex":"have relationships with"},{"level":10,"id":484,"word":"reputation","pos":"名詞","ja":"評判、名声","ex":"have a good reputation for"},{"level":10,"id":485,"word":"trend","pos":"名詞","ja":"傾向、風潮、流行","ex":"a trend toward"},{"level":10,"id":486,"word":"service","pos":"名詞","ja":"事業、便、運行","ex":"public services"},{"level":10,"id":486,"word":"service","pos":"名詞","ja":"サービス、接客","ex":"good service"},{"level":10,"id":487,"word":"religion","pos":"名詞","ja":"宗教","ex":"have a religion"},{"level":10,"id":488,"word":"moral","pos":"形容詞","ja":"道徳の、道徳的な","ex":"a moral responsibility"},{"level":10,"id":488,"word":"moral","pos":"名詞","ja":"（morals）道徳、教訓、風紀","ex":"the moral of the story"},{"level":10,"id":489,"word":"standard","pos":"名詞","ja":"基準、標準","ex":"safety standards"},{"level":10,"id":489,"word":"standard","pos":"形容詞","ja":"標準の","ex":"a standard size"},{"level":10,"id":490,"word":"prosperity","pos":"名詞","ja":"繁栄","ex":"bring prosperity"},{"level":10,"id":491,"word":"crisis","pos":"名詞","ja":"危機","ex":"face a crisis"},{"level":10,"id":492,"word":"prejudice","pos":"名詞","ja":"偏見","ex":"racial prejudice"},{"level":10,"id":493,"word":"discrimination","pos":"名詞","ja":"差別","ex":"fight discrimination"},{"level":10,"id":493,"word":"discrimination","pos":"名詞","ja":"識別、区別","ex":"discrimination between"},{"level":10,"id":494,"word":"charity","pos":"名詞","ja":"慈善、慈善団体","ex":"a charity concert"},{"level":10,"id":495,"word":"benefit","pos":"名詞","ja":"恩恵、利益、手当","ex":"bring great benefits"},{"level":10,"id":495,"word":"benefit","pos":"動詞","ja":"ためになる、恩恵を受ける","ex":"benefit from"},{"level":10,"id":496,"word":"welfare","pos":"名詞","ja":"福祉、幸福、生活保護","ex":"social welfare"},{"level":10,"id":497,"word":"community","pos":"名詞","ja":"地域社会、共同体","ex":"the Polish community"},{"level":10,"id":498,"word":"individual","pos":"名詞","ja":"個人","ex":"each individual"},{"level":10,"id":498,"word":"individual","pos":"形容詞","ja":"個々の、個人の","ex":"individual action"},{"level":10,"id":499,"word":"official","pos":"名詞","ja":"役人、公務員、当局者","ex":"a government official"},{"level":10,"id":499,"word":"official","pos":"形容詞","ja":"公式の、公用の","ex":"an official language"},{"level":10,"id":500,"word":"immigrant","pos":"名詞","ja":"移民、移住者","ex":"immigrants from India"}];
+
+// ---- util ----
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const uid = c => c.word + '|' + c.ja;
+WORDS.forEach(c => c._id = uid(c));
+const LEVELS = [...new Set(WORDS.map(c=>c.level))].sort((a,b)=>a-b);
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]];} return a; };
+const DAY = 86400000;
+const BOX_DAYS = [0, 1, 3, 7, 16]; // Leitner interval by box(1..5)
+const now = () => Date.now();
+
+// ---- storage ----
+const LS = {
+  get(k,d){ try{ const v=localStorage.getItem('vocab_'+k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem('vocab_'+k, JSON.stringify(v)); }catch(e){} }
+};
+let state = {
+  levels: LS.get('levels', [LEVELS[0]]),
+  len: LS.get('len', 10),
+  dir: LS.get('dir', 'e2j'),
+  diff: LS.get('diff', 'easy'),    // easy | normal | hard (選択肢の紛らわしさ)
+  srs: LS.get('srs', {}),          // id -> {box, due, seen, correct}
+  stats: LS.get('stats', {correct:0,total:0})
+};
+function save(){ LS.set('levels',state.levels); LS.set('len',state.len); LS.set('dir',state.dir);
+  LS.set('diff',state.diff); LS.set('srs',state.srs); LS.set('stats',state.stats); }
+const DIFF_HINT = {easy:'品詞が違う語が誤答に並び、消去法で選びやすい', normal:'全体からランダムに誤答を選ぶ', hard:'同レベル・同品詞の紛らわしい語が誤答に並ぶ'};
+const rec = c => state.srs[c._id];
+
+// ---- toast ----
+let toastT;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1800); }
+
+// ---- speech (American English native voice) ----
+let usVoice = null;
+function pickVoice(){
+  if(!('speechSynthesis' in window)) return;
+  const all = speechSynthesis.getVoices();
+  if(!all.length) return;
+  const en = all.filter(v => /en[-_]US/i.test(v.lang) || /English \(United States\)|American/i.test(v.name));
+  const pref = ['Google US English','Samantha','Ava (Premium)','Ava','Allison','Nicky','Aaron',
+    'Microsoft Aria','Microsoft Jenny','Microsoft Ava','Microsoft Michelle','Microsoft Guy',
+    'Microsoft Zira','Microsoft David'];
+  for(const p of pref){ const hit = en.find(v => v.name.includes(p)); if(hit){ usVoice = hit; return; } }
+  usVoice = en.find(v=>/en[-_]US/i.test(v.lang)) || en[0] || all.find(v=>/^en/i.test(v.lang)) || null;
+}
+if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+let warnedNoEn = false;
+function speak(text){
+  if(!('speechSynthesis' in window)){ toast('この端末は発音に対応していません'); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang='en-US'; u.rate=.9; u.pitch=1;
+  if(!usVoice) pickVoice();
+  if(usVoice){ u.voice = usVoice; }
+  else if(!warnedNoEn){ warnedNoEn=true; toast('米国英語の音声が未インストールです。Chromeで開くか英語(米国)音声を追加してください'); }
+  speechSynthesis.speak(u);
+}
+
+// ---- views ----
+function show(view){
+  ['home','quiz','result','book'].forEach(v=> $('#view-'+v).classList.toggle('hidden', v!==view));
+  const navMap = {home:'home', book:'book'};
+  $$('footer button').forEach(b=> b.classList.toggle('on', b.dataset.nav===navMap[view]));
+  window.scrollTo(0,0);
+}
+const selectedCards = () => WORDS.filter(c => state.levels.includes(c.level));
+const dueCards = () => selectedCards().filter(c => rec(c) && rec(c).due <= now());
+const newCards = () => selectedCards().filter(c => !rec(c));
+const masteredCards = () => selectedCards().filter(c => rec(c) && rec(c).box>=5);
+
+// ---- HOME ----
+function renderHome(){
+  $('#stDue').textContent = dueCards().length;
+  $('#stMastered').textContent = masteredCards().length;
+  const acc = state.stats.total ? Math.round(state.stats.correct/state.stats.total*100) : 0;
+  $('#stAcc').textContent = acc+'%';
+  const d = dueCards().length;
+  $('#reviewCount').textContent = d ? '('+d+')' : '';
+  $('#studyHint').textContent = '';
+
+  const ll = $('#levelList'); ll.innerHTML='';
+  LEVELS.forEach(lv=>{
+    const cards = WORDS.filter(c=>c.level===lv);
+    const ids = cards.map(c=>c.id), idMin=Math.min(...ids), idMax=Math.max(...ids);
+    const chip = document.createElement('button');
+    chip.className = 'lvchip' + (state.levels.includes(lv) ? ' on' : '');
+    chip.innerHTML = `<b>Lv.${lv}</b><small>${idMin}–${idMax}</small>`;
+    chip.addEventListener('click', ()=>{
+      if(state.levels.includes(lv)) state.levels = state.levels.filter(x=>x!==lv);
+      else state.levels.push(lv);
+      state.levels.sort((a,b)=>a-b); save();
+      chip.classList.toggle('on');
+      $('#stDue').textContent = dueCards().length;
+      $('#stMastered').textContent = masteredCards().length;
+      const dd = dueCards().length; $('#reviewCount').textContent = dd ? '('+dd+')' : '';
+      updateSelInfo();
+    });
+    ll.appendChild(chip);
+  });
+  $$('#lenSeg button').forEach(b=> b.classList.toggle('on', String(state.len)===b.dataset.len));
+  $$('#dirSeg button').forEach(b=> b.classList.toggle('on', state.dir===b.dataset.dir));
+  $$('#diffSeg button').forEach(b=> b.classList.toggle('on', state.diff===b.dataset.diff));
+  $('#diffHint').textContent = DIFF_HINT[state.diff] || '';
+  updateSelInfo();
+}
+function updateSelInfo(){
+  const n = selectedCards().length;
+  $('#selInfo').textContent = state.levels.length ? `Lv ${state.levels.join(',')}・${n}語` : '未選択';
+  $('#bookCount').textContent = `(${n}語)`;
+}
+
+// ---- session build ----
+function buildSession(mode){
+  const pool = selectedCards();
+  const due = shuffle(pool.filter(c=> rec(c) && rec(c).due <= now()));
+  if(mode==='review') return due;
+  const fresh = shuffle(pool.filter(c=> !rec(c)));
+  let s = due.concat(fresh);
+  if(s.length===0) s = shuffle(pool); // 全部学習済み→自由練習
+  if(state.len!=='all') s = s.slice(0, state.len);
+  return s;
+}
+
+// ---- QUIZ ----
+let quiz = null;
+function startQuiz(mode){
+  if(!state.levels.length){ toast('レベルを1つ以上選んでください'); return; }
+  const qs = buildSession(mode);
+  if(!qs.length){
+    toast(mode==='review' ? '今日の復習はありません 🎉' : '出題できる単語がありません');
+    return;
+  }
+  quiz = { mode, qs, i:0, correct:0, answered:false, curDir:null };
+  $('#qMode').textContent = mode==='review' ? '🔁 復習' : '▶ 学習';
+  show('quiz'); renderQuestion();
+}
+function qDirFor(){ return state.dir==='mix' ? (Math.random()<.5?'e2j':'j2e') : state.dir; }
+
+function distractors(q, dir){
+  const key = dir==='e2j' ? 'ja' : 'word';
+  const correct = q[key];
+  const notSame = c => c._id!==q._id && c[key]!==correct;
+  let tiers;
+  if(state.diff==='hard'){          // 紛らわしい：同レベル・同品詞を優先
+    tiers = [
+      WORDS.filter(c=> notSame(c) && c.level===q.level && c.pos===q.pos),
+      WORDS.filter(c=> notSame(c) && c.pos===q.pos),
+      WORDS.filter(c=> notSame(c) && c.level===q.level),
+      WORDS.filter(notSame)
+    ];
+  } else if(state.diff==='easy'){   // やさしい：品詞が違う語を優先＝消去法で選びやすい
+    tiers = [
+      WORDS.filter(c=> notSame(c) && c.pos!==q.pos),
+      WORDS.filter(notSame)
+    ];
+  } else {                          // ふつう：全体からランダム
+    tiers = [ WORDS.filter(notSame) ];
+  }
+  const seen = new Set([correct]); const out=[];
+  for(const tier of tiers){
+    for(const c of shuffle(tier)){
+      if(out.length>=3) break;
+      if(!seen.has(c[key])){ seen.add(c[key]); out.push(c[key]); }
+    }
+    if(out.length>=3) break;
+  }
+  return out;
+}
+function renderQuestion(){
+  const q = quiz.qs[quiz.i];
+  const dir = qDirFor(); quiz.curDir = dir;
+  quiz.answered = false;
+  $('#qCount').textContent = `${quiz.i+1} / ${quiz.qs.length}`;
+  $('#qBar').style.width = (quiz.i/quiz.qs.length*100)+'%';
+  $('#qFb').textContent=''; $('#qFb').className='fb';
+  $('#qAns').classList.add('hidden'); $('#qNext').classList.add('hidden');
+
+  const prompt = $('#qPrompt');
+  if(dir==='e2j'){
+    $('#qDir').textContent = '英語 → 意味';
+    prompt.textContent = q.word; prompt.className='prompt';
+    $('#qSpeak').classList.remove('hidden');
+  } else {
+    $('#qDir').textContent = '意味 → 英語';
+    prompt.textContent = q.ja; prompt.className='prompt ja';
+    $('#qSpeak').classList.add('hidden'); // 英単語を先に読むと答えがバレるため
+  }
+  $('#qPos').textContent = q.pos;
+
+  const key = dir==='e2j' ? 'ja' : 'word';
+  const correct = q[key];
+  const opts = shuffle([correct, ...distractors(q, dir)]);
+  const box = $('#qOptions'); box.innerHTML='';
+  opts.forEach(txt=>{
+    const b=document.createElement('button'); b.className='opt'; b.textContent=txt;
+    b.addEventListener('click',()=>answer(txt, q, dir));
+    box.appendChild(b);
+  });
+  if(dir==='e2j') speak(q.word);
+}
+function answer(sel, q, dir){
+  if(quiz.answered) return;
+  quiz.answered=true;
+  const key = dir==='e2j' ? 'ja' : 'word';
+  const correct = q[key];
+  const ok = sel===correct;
+  $$('#qOptions .opt').forEach(b=>{
+    if(b.textContent===correct) b.classList.add('correct');
+    else if(b.textContent===sel) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  const fb=$('#qFb');
+  fb.textContent = ok ? '正解！' : '不正解…';
+  fb.className = 'fb '+(ok?'ok':'ng');
+  $('#qAns').innerHTML = `<div class="pair">${q.word} — ${q.ja}</div><div class="exline">例: ${q.ex}　<span class="sub">Lv.${q.level}</span></div>`;
+  $('#qAns').classList.remove('hidden');
+  $('#qSpeak').classList.remove('hidden'); // 回答後は常に発音可
+  $('#qNext').classList.remove('hidden');
+
+  // ---- SRS update (Leitner) ----
+  let r = rec(q) || {box:1, due:0, seen:0, correct:0};
+  r.seen++;
+  if(ok){ r.correct++; r.box = Math.min(r.box+1, 5); }
+  else { r.box = 1; }
+  r.due = now() + BOX_DAYS[r.box-1]*DAY;
+  state.srs[q._id] = r;
+  state.stats.total++; if(ok){ state.stats.correct++; quiz.correct++; }
+  save();
+}
+$('#qNext').addEventListener('click',()=>{
+  quiz.i++;
+  if(quiz.i>=quiz.qs.length) finishQuiz();
+  else renderQuestion();
+});
+function finishQuiz(){
+  const total=quiz.qs.length, c=quiz.correct, acc=Math.round(c/total*100);
+  $('#rScore').textContent = `${c} / ${total}`;
+  $('#rAcc').textContent = acc+'%';
+  $('#rMsg').textContent = acc===100 ? '全問正解！すばらしい 🎉'
+    : acc>=70 ? 'good! この調子で 👍' : '間違えた語は近いうちにまた出ます 💪';
+  $('#rReview').classList.toggle('hidden', dueCards().length===0);
+  show('result'); renderHome();
+}
+$('#qSpeak').addEventListener('click',()=> quiz && speak(quiz.qs[quiz.i].word));
+$('#qQuit').addEventListener('click',()=>{ show('home'); renderHome(); });
+$('#rAgain').addEventListener('click',()=> startQuiz('study'));
+$('#rReview').addEventListener('click',()=> startQuiz('review'));
+$('#rHome').addEventListener('click',()=>{ show('home'); renderHome(); });
+
+// ---- WORDBOOK ----
+let bookFilter='all';
+function statusOf(c){
+  const r=rec(c);
+  if(!r) return {k:'new', label:''};
+  if(r.box>=5) return {k:'ok', label:'覚えた'};
+  if(r.due<=now()) return {k:'due', label:'復習'};
+  return {k:'learning', label:'学習中'};
+}
+function renderBook(){
+  const q = $('#bookSearch').value.trim().toLowerCase();
+  let list = selectedCards();
+  if(bookFilter==='due') list=list.filter(c=>{const s=statusOf(c);return s.k==='due';});
+  if(bookFilter==='ok') list=list.filter(c=> rec(c)&&rec(c).box>=5);
+  if(q) list=list.filter(c=> c.word.toLowerCase().includes(q)||c.ja.includes(q)||c.ex.toLowerCase().includes(q));
+  const box=$('#bookList'); box.innerHTML='';
+  if(!list.length){ box.innerHTML='<div class="empty">該当する単語がありません</div>'; return; }
+  list.forEach(c=>{
+    const st=statusOf(c);
+    const flag = st.label ? `<span class="flag ${st.k}">${st.label}</span>` : '';
+    const el=document.createElement('div'); el.className='wb';
+    el.innerHTML=`
+      <div class="wbhead">
+        <span class="w">${c.word}</span>
+        <span class="tag">${c.pos}</span>
+        <button class="wbspk">🔊</button>
+      </div>
+      <div class="wbbody hidden">
+        <div class="ja">${c.ja}</div>
+        <div class="ex">例: ${c.ex}　<span class="sub">Lv.${c.level} / No.${c.id}</span></div>
+        ${flag}
+      </div>`;
+    const head=el.querySelector('.wbhead'), body=el.querySelector('.wbbody');
+    head.addEventListener('click', e=>{ if(e.target.closest('.wbspk')) return; body.classList.toggle('hidden'); });
+    el.querySelector('.wbspk').addEventListener('click', e=>{ e.stopPropagation(); speak(c.word); });
+    box.appendChild(el);
+  });
+}
+$('#bookSearch').addEventListener('input', renderBook);
+function setBookFilter(f, btn){ bookFilter=f; ['#bookAll','#bookDue','#bookOk'].forEach(s=>$(s).classList.remove('on')); btn.classList.add('on'); renderBook(); }
+$('#bookAll').addEventListener('click', e=> setBookFilter('all', e.currentTarget));
+$('#bookDue').addEventListener('click', e=> setBookFilter('due', e.currentTarget));
+$('#bookOk').addEventListener('click', e=> setBookFilter('ok', e.currentTarget));
+function openBook(){ setBookFilter('all', $('#bookAll')); show('book'); }
+
+// ---- HOME buttons ----
+$('#selAll').addEventListener('click',()=>{ state.levels=LEVELS.slice(); save(); renderHome(); });
+$('#selNone').addEventListener('click',()=>{ state.levels=[]; save(); renderHome(); });
+$$('#lenSeg button').forEach(b=> b.addEventListener('click',()=>{
+  state.len = b.dataset.len==='all' ? 'all' : +b.dataset.len; save();
+  $$('#lenSeg button').forEach(x=>x.classList.toggle('on',x===b));
+}));
+$$('#dirSeg button').forEach(b=> b.addEventListener('click',()=>{
+  state.dir = b.dataset.dir; save();
+  $$('#dirSeg button').forEach(x=>x.classList.toggle('on',x===b));
+}));
+$$('#diffSeg button').forEach(b=> b.addEventListener('click',()=>{
+  state.diff = b.dataset.diff; save();
+  $$('#diffSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  $('#diffHint').textContent = DIFF_HINT[state.diff] || '';
+}));
+$('#startStudy').addEventListener('click',()=> startQuiz('study'));
+$('#startReview').addEventListener('click',()=> startQuiz('review'));
+$('#startBook').addEventListener('click', openBook);
+$('#resetProg').addEventListener('click',()=>{
+  if(confirm('進捗（学習状況・正答率）をすべて消去しますか？')){
+    state.srs={}; state.stats={correct:0,total:0}; save(); renderHome(); toast('リセットしました');
+  }
+});
+$$('footer button').forEach(b=> b.addEventListener('click',()=>{
+  const n=b.dataset.nav;
+  if(n==='home'){ show('home'); renderHome(); }
+  else if(n==='book'){ openBook(); }
+  else if(n==='reviewNav'){ startQuiz('review'); }
+}));
+
+// init
+renderHome();
+show('home');
+</script>
+</body>
+</html>
