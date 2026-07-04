@@ -91,10 +91,16 @@
   .wbbody{padding:0 14px 14px; border-top:1px dashed var(--line);}
   .wbbody .ja{font-size:17px; font-weight:600; margin:10px 0 4px;}
   .wbbody .ex{color:var(--muted); font-size:13px;}
-  .flag{display:inline-block; font-size:11px; padding:2px 8px; border-radius:8px; margin-top:8px;}
+  .flag{display:inline-block; font-size:11px; padding:2px 8px; border-radius:8px;}
   .flag.due{background:rgba(245,158,11,.15); color:#fde68a;}
   .flag.learning{background:rgba(129,140,248,.15); color:#c7d2fe;}
   .flag.ok{background:rgba(34,197,94,.15); color:#bbf7d0;}
+  .flag.new{background:var(--card2); color:var(--muted);}
+  .wbactions{display:flex; align-items:center; gap:10px; margin-top:12px;}
+  .markbtn{margin-left:auto; padding:8px 14px; border-radius:9px; background:var(--ok); color:#052e16;
+           border:none; font-size:12px; font-weight:700;}
+  .markbtn:active{transform:scale(.97);}
+  .markbtn.revert{background:var(--card2); color:var(--muted); border:1px solid var(--line);}
   .empty{text-align:center; color:var(--muted); padding:40px 10px;}
   footer{position:fixed; left:0; right:0; bottom:0; max-width:520px; margin:0 auto; display:flex;
           background:rgba(15,23,42,.96); backdrop-filter:blur(8px); border-top:1px solid var(--line);}
@@ -490,8 +496,6 @@ function renderBook(){
   const box=$('#bookList'); box.innerHTML='';
   if(!list.length){ box.innerHTML='<div class="empty">該当する単語がありません</div>'; return; }
   list.forEach(c=>{
-    const st=statusOf(c);
-    const flag = st.label ? `<span class="flag ${st.k}">${st.label}</span>` : '';
     const el=document.createElement('div'); el.className='wb';
     el.innerHTML=`
       <div class="wbhead">
@@ -502,11 +506,31 @@ function renderBook(){
       <div class="wbbody hidden">
         <div class="ja">${c.ja}</div>
         <div class="ex">例: ${c.ex}　<span class="sub">Lv.${c.level} / No.${c.id}</span></div>
-        ${flag}
+        <div class="wbactions"><span class="flag"></span><button class="markbtn"></button></div>
       </div>`;
     const head=el.querySelector('.wbhead'), body=el.querySelector('.wbbody');
+    const flagEl=el.querySelector('.flag'), markBtn=el.querySelector('.markbtn');
+    function refresh(){
+      const st=statusOf(c);
+      flagEl.className='flag '+st.k;
+      flagEl.textContent = st.label || '未学習';
+      if(st.k==='ok'){ markBtn.textContent='↺ 学習中に戻す'; markBtn.classList.add('revert'); }
+      else { markBtn.textContent='✓ 覚えた にする'; markBtn.classList.remove('revert'); }
+    }
+    refresh();
     head.addEventListener('click', e=>{ if(e.target.closest('.wbspk')) return; body.classList.toggle('hidden'); });
     el.querySelector('.wbspk').addEventListener('click', e=>{ e.stopPropagation(); speak(c.word); });
+    markBtn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const st=statusOf(c);
+      const r = rec(c) || {box:1, due:0, seen:0, correct:0};
+      if(st.k==='ok'){ r.box=2; r.due=now()+BOX_DAYS[1]*DAY; }  // 覚えた→学習中に戻す
+      else { r.box=5; r.due=now()+BOX_DAYS[4]*DAY; }            // →覚えた（習得済み）
+      state.srs[c._id]=r; save();
+      const d=$('#stDue'); if(d) d.textContent=dueCards().length;
+      const m=$('#stMastered'); if(m) m.textContent=masteredCards().length;
+      if(bookFilter!=='all') renderBook(); else refresh();
+    });
     box.appendChild(el);
   });
 }
