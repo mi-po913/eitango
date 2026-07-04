@@ -241,7 +241,11 @@ let state = {
 };
 function save(){ LS.set('levels',state.levels); LS.set('len',state.len); LS.set('dir',state.dir);
   LS.set('diff',state.diff); LS.set('srs',state.srs); LS.set('stats',state.stats); }
-const DIFF_HINT = {easy:'品詞が違う語が誤答に並び、消去法で選びやすい', normal:'全体からランダムに誤答を選ぶ', hard:'同レベル・同品詞の紛らわしい語が誤答に並ぶ'};
+const DIFF_HINT = {easy:'同じ品詞・別レベルから誤答を選ぶ（意味が離れ選びやすい）', normal:'同じ品詞からランダムに誤答を選ぶ', hard:'同じ品詞・同レベルの紛らわしい語が誤答に並ぶ'};
+// 品詞を基本カテゴリで判定（「名詞・動詞」等の複合表記にも対応）
+const POS_BASES = ['動詞','名詞','形容詞','副詞','前置詞','助動詞','接続詞'];
+function posBases(p){ return POS_BASES.filter(b => p.indexOf(b) >= 0); }
+function posMatch(a, b){ const ka = posBases(a); if(!ka.length) return a===b; return ka.some(x => b.indexOf(x) >= 0); }
 const rec = c => state.srs[c._id];
 
 // ---- toast ----
@@ -359,22 +363,24 @@ function distractors(q, dir){
   const key = dir==='e2j' ? 'ja' : 'word';
   const correct = q[key];
   const notSame = c => c._id!==q._id && c[key]!==correct;
+  // 誤答は常に「同じ品詞」から選ぶ（表示品詞で答えを絞れないようにする）
+  const samePos = c => notSame(c) && posMatch(q.pos, c.pos);
   let tiers;
-  if(state.diff==='hard'){          // 紛らわしい：同レベル・同品詞を優先
+  if(state.diff==='hard'){          // 紛らわしい：同じ品詞・同レベルを優先
     tiers = [
-      WORDS.filter(c=> notSame(c) && c.level===q.level && c.pos===q.pos),
-      WORDS.filter(c=> notSame(c) && c.pos===q.pos),
-      WORDS.filter(c=> notSame(c) && c.level===q.level),
-      WORDS.filter(notSame)
+      WORDS.filter(c=> samePos(c) && c.level===q.level),
+      WORDS.filter(samePos)
     ];
-  } else if(state.diff==='easy'){   // やさしい：品詞が違う語を優先＝消去法で選びやすい
+  } else if(state.diff==='easy'){   // やさしい：同じ品詞・別レベル（意味が離れ選びやすい）
     tiers = [
-      WORDS.filter(c=> notSame(c) && c.pos!==q.pos),
-      WORDS.filter(notSame)
+      WORDS.filter(c=> samePos(c) && c.level!==q.level),
+      WORDS.filter(samePos)
     ];
-  } else {                          // ふつう：全体からランダム
-    tiers = [ WORDS.filter(notSame) ];
+  } else {                          // ふつう：同じ品詞からランダム
+    tiers = [ WORDS.filter(samePos) ];
   }
+  // 同品詞が3つに満たない場合のみ品詞不問で補完
+  tiers.push(WORDS.filter(notSame));
   const seen = new Set([correct]); const out=[];
   for(const tier of tiers){
     for(const c of shuffle(tier)){
