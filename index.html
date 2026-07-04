@@ -204,6 +204,7 @@
   <input class="search" id="bookSearch" placeholder="🔍 単語・意味で検索">
   <div class="seg" style="margin-bottom:6px;">
     <button class="sec on" id="bookAll" style="flex:1;padding:9px;">すべて</button>
+    <button class="sec" id="bookLearning" style="flex:1;padding:9px;">学習中</button>
     <button class="sec" id="bookDue" style="flex:1;padding:9px;">復習</button>
     <button class="sec" id="bookOk" style="flex:1;padding:9px;">覚えた</button>
   </div>
@@ -490,6 +491,7 @@ function statusOf(c){
 function renderBook(){
   const q = $('#bookSearch').value.trim().toLowerCase();
   let list = selectedCards();
+  if(bookFilter==='learning') list=list.filter(c=> statusOf(c).k==='learning');
   if(bookFilter==='due') list=list.filter(c=>{const s=statusOf(c);return s.k==='due';});
   if(bookFilter==='ok') list=list.filter(c=> rec(c)&&rec(c).box>=5);
   if(q) list=list.filter(c=> c.word.toLowerCase().includes(q)||c.ja.includes(q)||c.ex.toLowerCase().includes(q));
@@ -535,8 +537,9 @@ function renderBook(){
   });
 }
 $('#bookSearch').addEventListener('input', renderBook);
-function setBookFilter(f, btn){ bookFilter=f; ['#bookAll','#bookDue','#bookOk'].forEach(s=>$(s).classList.remove('on')); btn.classList.add('on'); renderBook(); }
+function setBookFilter(f, btn){ bookFilter=f; ['#bookAll','#bookLearning','#bookDue','#bookOk'].forEach(s=>$(s).classList.remove('on')); btn.classList.add('on'); renderBook(); }
 $('#bookAll').addEventListener('click', e=> setBookFilter('all', e.currentTarget));
+$('#bookLearning').addEventListener('click', e=> setBookFilter('learning', e.currentTarget));
 $('#bookDue').addEventListener('click', e=> setBookFilter('due', e.currentTarget));
 $('#bookOk').addEventListener('click', e=> setBookFilter('ok', e.currentTarget));
 function openBook(){ setBookFilter('all', $('#bookAll')); show('book'); }
