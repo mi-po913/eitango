@@ -102,6 +102,10 @@
   .markbtn:active{transform:scale(.97);}
   .markbtn.revert{background:var(--card2); color:var(--muted); border:1px solid var(--line);}
   .empty{text-align:center; color:var(--muted); padding:40px 10px;}
+  .htbl{width:100%; border-collapse:collapse; font-size:13px;}
+  .htbl th,.htbl td{border:1px solid var(--line); padding:7px 9px; text-align:left; vertical-align:top;}
+  .htbl th{background:var(--card2); color:var(--muted); font-weight:600;}
+  #view-help h3{color:var(--accent2);}
   footer{position:fixed; left:0; right:0; bottom:0; max-width:520px; margin:0 auto; display:flex;
           background:rgba(15,23,42,.96); backdrop-filter:blur(8px); border-top:1px solid var(--line);}
   footer button{flex:1; background:transparent; color:var(--muted); padding:10px 2px 12px; font-size:11px;
@@ -171,6 +175,7 @@
   <button class="btn ghost" id="startReview">🔁 今日の復習だけ <span id="reviewCount"></span></button>
   <button class="btn sec" id="startBook">📖 単語帳モード</button>
   <div class="sub" style="text-align:center;margin-top:14px;">間隔反復で復習タイミングを自動管理・進捗は端末に保存</div>
+  <button class="btn ghost" id="openHelp" style="margin-top:8px;font-size:13px;padding:10px;">❓ 使い方・仕組み</button>
   <button class="btn ghost" id="resetProg" style="margin-top:8px;font-size:13px;padding:10px;">進捗をリセット</button>
 </section>
 
@@ -215,6 +220,66 @@
     <button class="sec" id="bookOk" style="flex:1;padding:9px;">覚えた</button>
   </div>
   <div id="bookList"></div>
+</section>
+
+<!-- HELP -->
+<section id="view-help" class="hidden">
+  <h2 style="margin-top:14px;">❓ 使い方・仕組み</h2>
+
+  <div class="card">
+    <h3 style="margin:0 0 6px;font-size:15px;">基本の流れ</h3>
+    <div class="sub" style="color:var(--fg);">
+      ①レベルを選ぶ（50語＝1レベル、複数可）→ ②向き・難しさ・語数を設定 → ③<b>▶学習スタート</b>。<br>
+      毎日ひらいて<b>🔁今日の復習だけ</b>をこなすと、忘れかけた頃に自動で再出題され定着します（1日10〜20語が目安）。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 6px;font-size:15px;">「覚えた」になる条件</h3>
+    <div class="sub" style="color:var(--fg);">
+      各単語に「箱レベル1〜5」があり、<b>正解で箱＋1／不正解で箱1に戻る</b>。<br>
+      <b>箱が5になると「覚えた」</b>。新規語なら<b>間隔をあけて4回正解</b>で到達します。<br>
+      単語帳の<b>「✓覚えた にする」</b>で手動でも即・覚えたにでき、<b>「↺学習中に戻す」</b>で戻せます。<br>
+      ⚠️ 覚えた語も、後で<b>間違えると箱1に戻り</b>また学習対象になります。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 8px;font-size:15px;">復習で再び出てくるタイミング</h3>
+    <table class="htbl">
+      <tr><th>箱が上がる</th><th>次の出題まで</th></tr>
+      <tr><td>1 → 2</td><td>翌日（1日後）</td></tr>
+      <tr><td>2 → 3</td><td>3日後</td></tr>
+      <tr><td>3 → 4</td><td>7日後</td></tr>
+      <tr><td>4 → 5</td><td>16日後</td></tr>
+    </table>
+    <div class="sub" style="margin-top:8px;">
+      不正解 → 箱1に戻り<b>当日の復習</b>へ。<br>
+      <b>今日の復習だけ</b>＝予定日が来た語のみ出題。<b>学習スタート</b>＝今日の復習＋新語。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 8px;font-size:15px;">4つのステータス（単語帳）</h3>
+    <table class="htbl">
+      <tr><td><span class="flag new">未学習</span></td><td>まだ一度も出題していない</td></tr>
+      <tr><td><span class="flag learning">学習中</span></td><td>学習開始したが次の復習日はまだ先（覚えている途中）</td></tr>
+      <tr><td><span class="flag due">復習</span></td><td>復習予定日が来ている（今日やるとよい）</td></tr>
+      <tr><td><span class="flag ok">覚えた</span></td><td>箱5に到達（習得済み）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 6px;font-size:15px;">設定と保存</h3>
+    <div class="sub" style="color:var(--fg);">
+      <b>選択肢の難しさ</b>：やさしい/ふつう/むずかしい（選択肢は常に正解と同じ品詞）。<br>
+      <b>覚えた語</b>「出題しない」で、覚えていない語だけ練習できます。<br>
+      <b>進捗</b>はこの端末のブラウザに自動保存（別端末には引き継がれません）。<br>
+      <b>発音</b>🔊は米国英語を優先。英語音声が無い端末はChromeで開くと自然になります。
+    </div>
+  </div>
+
+  <button class="btn sec" id="helpBack">ホームへ戻る</button>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -295,7 +360,7 @@ function speak(text){
 
 // ---- views ----
 function show(view){
-  ['home','quiz','result','book'].forEach(v=> $('#view-'+v).classList.toggle('hidden', v!==view));
+  ['home','quiz','result','book','help'].forEach(v=> $('#view-'+v).classList.toggle('hidden', v!==view));
   const navMap = {home:'home', book:'book'};
   $$('footer button').forEach(b=> b.classList.toggle('on', b.dataset.nav===navMap[view]));
   window.scrollTo(0,0);
@@ -573,6 +638,8 @@ $$('#exSeg button').forEach(b=> b.addEventListener('click',()=>{
   state.excludeMastered = b.dataset.ex==='1'; save();
   $$('#exSeg button').forEach(x=>x.classList.toggle('on',x===b));
 }));
+$('#openHelp').addEventListener('click',()=> show('help'));
+$('#helpBack').addEventListener('click',()=>{ show('home'); renderHome(); });
 $('#startStudy').addEventListener('click',()=> startQuiz('study'));
 $('#startReview').addEventListener('click',()=> startQuiz('review'));
 $('#startBook').addEventListener('click', openBook);
