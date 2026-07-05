@@ -9,30 +9,38 @@
   :root{
     --bg:#0f172a; --card:#1e293b; --card2:#273549; --fg:#f1f5f9; --muted:#94a3b8;
     --accent:#6366f1; --accent2:#818cf8; --ok:#22c55e; --ng:#ef4444; --line:#334155; --warn:#f59e0b;
+    --grad:linear-gradient(135deg,#6366f1 0%,#8b5cf6 60%,#a855f7 100%);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0;}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
-    background:var(--bg); color:var(--fg); line-height:1.5;
+    background:radial-gradient(900px 480px at 50% -140px, rgba(99,102,241,.18), transparent 60%), var(--bg);
+    color:var(--fg); line-height:1.5;
     max-width:520px; margin:0 auto; min-height:100vh; padding:0 14px 90px;
   }
   header{
     position:sticky; top:0; z-index:20; background:rgba(15,23,42,.92); backdrop-filter:blur(8px);
     padding:14px 2px 10px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--line);
   }
-  header h1{font-size:18px; margin:0; flex:1;}
+  header h1{font-size:18px; margin:0; flex:1; font-weight:800; letter-spacing:.02em;
+    background:linear-gradient(90deg,#c7d2fe,#f1f5f9); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .logo{display:flex; color:#818cf8;}
+  .logo svg{width:21px; height:21px;}
   .pill{font-size:12px; color:var(--muted); background:var(--card); padding:4px 10px; border-radius:999px;}
   h2{font-size:16px; margin:22px 2px 10px;}
   .sub{color:var(--muted); font-size:13px;}
   .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin:12px 0;}
   button{font-family:inherit; cursor:pointer; border:none; border-radius:12px; font-size:15px;}
-  .btn{width:100%; padding:15px; background:var(--accent); color:#fff; font-weight:600; margin:8px 0;
-       display:flex; align-items:center; justify-content:center; gap:8px; transition:.15s;}
+  .btn{width:100%; padding:15px; background:var(--grad); color:#fff; font-weight:700; margin:8px 0;
+       display:flex; align-items:center; justify-content:center; gap:8px; transition:.15s;
+       box-shadow:0 6px 20px rgba(109,90,246,.30);}
   .btn:active{transform:scale(.98);}
-  .btn.sec{background:var(--card2); color:var(--fg); border:1px solid var(--line);}
-  .btn.ghost{background:transparent; color:var(--accent2); border:1px solid var(--line);}
+  .btn.big{padding:17px; font-size:16.5px; border-radius:14px;}
+  .btn.sec{background:var(--card2); color:var(--fg); border:1px solid var(--line); box-shadow:none; font-weight:600;}
+  .btn.ghost{background:transparent; color:var(--accent2); border:1px solid var(--line); box-shadow:none; font-weight:600;}
   .btn:disabled{opacity:.45;}
+  .btn svg{width:18px; height:18px; flex:0 0 auto;}
   .lvitem{display:flex; align-items:center; gap:12px; padding:12px 8px; border-bottom:1px solid var(--line);}
   .lvitem:last-child{border-bottom:none;}
   .lvitem label{flex:1; display:flex; flex-direction:column;}
@@ -45,11 +53,11 @@
   .lvchip:active{transform:scale(.96);}
   .lvchip b{display:block; font-size:14px; font-weight:700;}
   .lvchip small{display:block; font-size:9px; color:var(--muted); margin-top:1px;}
-  .lvchip.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .lvchip.on{background:var(--grad); border-color:transparent; color:#fff;}
   .lvchip.on small{color:#dbeafe;}
   .seg{display:flex; gap:8px; flex-wrap:wrap;}
   .seg button{flex:1; min-width:60px; padding:11px 6px; background:var(--card2); color:var(--fg); border:1px solid var(--line);}
-  .seg button.on{background:var(--accent); color:#fff; border-color:var(--accent);}
+  .seg button.on{background:var(--grad); color:#fff; border-color:transparent;}
   .stat{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; text-align:center;}
   .stat .num{font-size:22px; font-weight:700;}
   .stat .num.due{color:var(--warn);}
@@ -116,11 +124,53 @@
          border:1px solid var(--line); color:var(--fg); padding:10px 16px; border-radius:999px; font-size:13px;
          opacity:0; transition:.25s; pointer-events:none; z-index:50; max-width:90%; text-align:center;}
   .toast.show{opacity:1;}
+
+  /* ---- design v2 ---- */
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:9px;}
+  .grid2 .btn{margin:0;}
+  .grid3link{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px;}
+  .linkbtn{display:flex; flex-direction:column; align-items:center; gap:5px; padding:11px 4px;
+           background:transparent; border:1px solid var(--line); border-radius:12px; color:var(--muted); font-size:11.5px;}
+  .linkbtn:active{transform:scale(.97);}
+  .linkbtn svg{width:17px; height:17px;}
+  details.acc{background:var(--card); border:1px solid var(--line); border-radius:14px; margin:12px 0; overflow:hidden;}
+  details.acc summary{list-style:none; display:flex; align-items:center; gap:9px; padding:14px 15px; cursor:pointer; font-weight:700; font-size:14.5px;}
+  details.acc summary::-webkit-details-marker{display:none;}
+  details.acc summary .lead{width:17px; height:17px; color:var(--accent2); flex:0 0 auto;}
+  details.acc summary .accsub{font-weight:500; font-size:12px; color:var(--muted); margin-left:auto;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:52%;}
+  details.acc summary .chev{width:16px; height:16px; color:var(--muted); flex:0 0 auto; transition:transform .25s;}
+  details.acc[open] summary .chev{transform:rotate(180deg);}
+  details.acc .accbody{padding:2px 14px 14px;}
+  .cfglabel{font-size:12.5px; color:var(--muted); font-weight:600; margin:13px 2px 7px;}
+  .lvchip .prog{display:block; height:3px; background:rgba(255,255,255,.10); border-radius:2px; margin-top:5px; overflow:hidden;}
+  .lvchip .prog span{display:block; height:100%; border-radius:2px; background:linear-gradient(90deg,#34d399,#4ade80);}
+  .lvchip.on .prog{background:rgba(255,255,255,.28);}
+  footer .ic svg{width:21px; height:21px;}
+  .spk{display:flex; align-items:center; justify-content:center;}
+  .spk svg{width:25px; height:25px;}
+  .wbspk{display:flex; align-items:center; justify-content:center;}
+  .wbspk svg{width:18px; height:18px;}
+  @keyframes popIn{0%{transform:scale(1)}45%{transform:scale(1.045)}100%{transform:scale(1)}}
+  @keyframes shakeX{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}45%{transform:translateX(5px)}70%{transform:translateX(-3px)}}
+  @keyframes riseIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .card.enter{animation:riseIn .28s ease;}
+  .opt.correct{animation:popIn .35s ease;}
+  .opt.wrong{animation:shakeX .4s ease;}
+  .ringwrap{position:relative; width:150px; height:150px; margin:8px auto 2px;}
+  .ring{width:150px; height:150px; transform:rotate(-90deg);}
+  .ring-bg{fill:none; stroke:var(--card2); stroke-width:11;}
+  .ring-fg{fill:none; stroke:url(#ringGrad); stroke-width:11; stroke-linecap:round;
+           stroke-dasharray:326.73; stroke-dashoffset:326.73;
+           transition:stroke-dashoffset .9s cubic-bezier(.33,1,.45,1);}
+  .ringcenter{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
 </style>
 </head>
 <body>
 <header>
-  <h1>📘 英単語学習</h1>
+  <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+  <h1>英単語学習</h1>
   <span class="pill" id="selInfo">—</span>
 </header>
 
@@ -134,61 +184,71 @@
     </div>
   </div>
 
-  <h2>レベルを選ぶ <span class="sub">（複数選択可・タップで選択）</span></h2>
-  <div id="levelList" class="lvgrid"></div>
-  <div class="seg" style="margin-top:-4px;">
-    <button id="selAll" class="sec" style="flex:1;padding:10px;">すべて選択</button>
-    <button id="selNone" class="sec" style="flex:1;padding:10px;">選択解除</button>
+  <button class="btn big" id="startStudy"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.54.84l10-6.5a1 1 0 0 0 0-1.68l-10-6.5A1 1 0 0 0 8 5.5z"/></svg>学習スタート <span class="sub" id="studyHint" style="color:#dbeafe;"></span></button>
+  <div class="grid2">
+    <button class="btn sec" id="startReview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>今日の復習 <span id="reviewCount"></span></button>
+    <button class="btn sec" id="startBook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>単語帳</button>
   </div>
 
-  <h2>出題の向き</h2>
-  <div class="seg" id="dirSeg">
-    <button data-dir="e2j">英語→意味</button>
-    <button data-dir="j2e">意味→英語</button>
-    <button data-dir="mix">ミックス</button>
-  </div>
+  <details class="acc" id="accLevel">
+    <summary><svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>レベル<span class="accsub" id="lvSummaryTxt">—</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+    <div class="accbody">
+      <div id="levelList" class="lvgrid"></div>
+      <div class="seg" style="margin-top:-2px;">
+        <button id="selAll" class="sec" style="flex:1;padding:10px;">すべて選択</button>
+        <button id="selNone" class="sec" style="flex:1;padding:10px;">選択解除</button>
+      </div>
+    </div>
+  </details>
 
-  <h2>選択肢の難しさ</h2>
-  <div class="seg" id="diffSeg">
-    <button data-diff="easy">やさしい</button>
-    <button data-diff="normal">ふつう</button>
-    <button data-diff="hard">むずかしい</button>
-  </div>
-  <div class="sub" id="diffHint" style="margin:6px 2px 0;"></div>
+  <details class="acc" id="accCfg">
+    <summary><svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>出題設定<span class="accsub" id="cfgSummaryTxt">—</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+    <div class="accbody">
+      <div class="cfglabel">出題の向き</div>
+      <div class="seg" id="dirSeg">
+        <button data-dir="e2j">英語→意味</button>
+        <button data-dir="j2e">意味→英語</button>
+        <button data-dir="mix">ミックス</button>
+      </div>
+      <div class="cfglabel">選択肢の難しさ</div>
+      <div class="seg" id="diffSeg">
+        <button data-diff="easy">やさしい</button>
+        <button data-diff="normal">ふつう</button>
+        <button data-diff="hard">むずかしい</button>
+      </div>
+      <div class="sub" id="diffHint" style="margin:6px 2px 0;"></div>
+      <div class="cfglabel">1回の語数</div>
+      <div class="seg" id="lenSeg">
+        <button data-len="10">10問</button>
+        <button data-len="20">20問</button>
+        <button data-len="50">50問</button>
+        <button data-len="all">全部</button>
+      </div>
+      <div class="cfglabel">覚えた語 <span class="sub" style="font-weight:400;">— 「出題しない」で未習得だけ練習</span></div>
+      <div class="seg" id="exSeg">
+        <button data-ex="0">出題する</button>
+        <button data-ex="1">出題しない</button>
+      </div>
+    </div>
+  </details>
 
-  <h2>1回の語数</h2>
-  <div class="seg" id="lenSeg">
-    <button data-len="10">10問</button>
-    <button data-len="20">20問</button>
-    <button data-len="50">50問</button>
-    <button data-len="all">全部</button>
+  <div class="grid3link">
+    <button class="linkbtn" id="openBackup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>バックアップ</button>
+    <button class="linkbtn" id="openHelp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>使い方</button>
+    <button class="linkbtn" id="resetProg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>リセット</button>
   </div>
-
-  <h2>覚えた語 <span class="sub">（覚えていない語だけで練習できます）</span></h2>
-  <div class="seg" id="exSeg">
-    <button data-ex="0">出題する</button>
-    <button data-ex="1">出題しない</button>
-  </div>
-
-  <h2>スタート</h2>
-  <button class="btn" id="startStudy">▶ 学習スタート <span class="sub" id="studyHint" style="color:#dbeafe;"></span></button>
-  <button class="btn ghost" id="startReview">🔁 今日の復習だけ <span id="reviewCount"></span></button>
-  <button class="btn sec" id="startBook">📖 単語帳モード</button>
-  <div class="sub" style="text-align:center;margin-top:14px;">間隔反復で復習タイミングを自動管理・進捗は端末に保存</div>
-  <button class="btn ghost" id="openBackup" style="margin-top:8px;font-size:13px;padding:10px;">💾 進捗のバックアップ／復元</button>
-  <button class="btn ghost" id="openHelp" style="margin-top:8px;font-size:13px;padding:10px;">❓ 使い方・仕組み</button>
-  <button class="btn ghost" id="resetProg" style="margin-top:8px;font-size:13px;padding:10px;">進捗をリセット</button>
+  <div class="sub" style="text-align:center;margin-top:12px;">間隔反復で復習タイミングを自動管理・進捗は端末に保存</div>
 </section>
 
 <!-- QUIZ -->
 <section id="view-quiz" class="hidden">
   <div class="qtop"><span id="qMode">学習</span><span id="qCount">1 / 10</span></div>
   <div class="bar"><i id="qBar"></i></div>
-  <div class="card">
+  <div class="card" id="qCard">
     <div style="text-align:center;"><span class="dirtag" id="qDir">英語→意味</span></div>
     <div class="prompt" id="qPrompt">—</div>
     <div class="wpos" id="qPos"></div>
-    <button class="spk" id="qSpeak">🔊</button>
+    <button class="spk" id="qSpeak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
     <div id="qOptions"></div>
     <div class="fb" id="qFb"></div>
     <div class="answden hidden" id="qAns"></div>
@@ -200,10 +260,24 @@
 <!-- RESULT -->
 <section id="view-result" class="hidden">
   <div class="card" style="text-align:center;">
-    <div style="font-size:15px;color:var(--muted);">結果</div>
-    <div style="font-size:44px;font-weight:800;margin:6px 0;" id="rScore">0 / 0</div>
-    <div style="font-size:20px;font-weight:700;" id="rAcc">0%</div>
-    <div class="sub" id="rMsg" style="margin-top:8px;"></div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:2px;">結果</div>
+    <div class="ringwrap">
+      <svg class="ring" viewBox="0 0 120 120">
+        <defs>
+          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6366f1"/>
+            <stop offset="100%" stop-color="#a855f7"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-bg" cx="60" cy="60" r="52"/>
+        <circle class="ring-fg" id="rRing" cx="60" cy="60" r="52"/>
+      </svg>
+      <div class="ringcenter">
+        <div id="rAcc" style="font-size:30px;font-weight:800;">0%</div>
+        <div id="rScore" class="sub">0 / 0</div>
+      </div>
+    </div>
+    <div class="sub" id="rMsg" style="margin-top:10px;"></div>
   </div>
   <button class="btn" id="rAgain">続けて学習</button>
   <button class="btn ghost" id="rReview">今日の復習だけ</button>
@@ -225,7 +299,7 @@
 
 <!-- HELP -->
 <section id="view-help" class="hidden">
-  <h2 style="margin-top:14px;">❓ 使い方・仕組み</h2>
+  <h2 style="margin-top:14px;">使い方・仕組み</h2>
 
   <div class="card">
     <h3 style="margin:0 0 6px;font-size:15px;">基本の流れ</h3>
@@ -286,16 +360,16 @@
 
 <!-- BACKUP -->
 <section id="view-backup" class="hidden">
-  <h2 style="margin-top:14px;">💾 進捗のバックアップ／復元</h2>
+  <h2 style="margin-top:14px;">進捗のバックアップ／復元</h2>
   <div class="card">
     <div class="sub" style="margin-bottom:8px;">
       <b>バックアップ</b>：「コードを作成」→ コピーしてメモアプリ等に保存。<br>
       <b>復元</b>：別の端末でこの画面を開き、コードを貼り付けて「復元」を押すと進捗と設定が引き継がれます。
     </div>
-    <button class="btn" id="bkMake">📤 バックアップコードを作成</button>
+    <button class="btn" id="bkMake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>バックアップコードを作成</button>
     <textarea id="bkText" class="search" style="min-height:120px;resize:vertical;font-size:11px;word-break:break-all;" placeholder="ここにコードが表示されます。復元するときはここに貼り付けてください。"></textarea>
-    <button class="btn sec" id="bkCopy">📋 コードをコピー</button>
-    <button class="btn ghost" id="bkRestore">📥 このコードから復元する</button>
+    <button class="btn sec" id="bkCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>コードをコピー</button>
+    <button class="btn ghost" id="bkRestore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>このコードから復元する</button>
     <div class="sub" id="bkInfo" style="margin-top:4px;min-height:18px;"></div>
   </div>
   <button class="btn sec" id="bkBack">ホームへ戻る</button>
@@ -304,9 +378,9 @@
 <div class="toast" id="toast"></div>
 
 <footer>
-  <button data-nav="home" class="on"><span class="ic">🏠</span>ホーム</button>
-  <button data-nav="book"><span class="ic">📖</span>単語帳</button>
-  <button data-nav="reviewNav"><span class="ic">🔁</span>復習</button>
+  <button data-nav="home" class="on"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>ホーム</button>
+  <button data-nav="book"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>単語帳</button>
+  <button data-nav="reviewNav"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>復習</button>
 </footer>
 
 <script>
@@ -405,7 +479,9 @@ function renderHome(){
     const ids = cards.map(c=>c.id), idMin=Math.min(...ids), idMax=Math.max(...ids);
     const chip = document.createElement('button');
     chip.className = 'lvchip' + (state.levels.includes(lv) ? ' on' : '');
-    chip.innerHTML = `<b>Lv.${lv}</b><small>${idMin}–${idMax}</small>`;
+    const mst = cards.filter(c=> rec(c) && rec(c).box>=5).length;
+    const pct = cards.length ? Math.round(mst/cards.length*100) : 0;
+    chip.innerHTML = `<b>Lv.${lv}</b><small>${idMin}–${idMax}</small><span class="prog"><span style="width:${pct}%"></span></span>`;
     chip.addEventListener('click', ()=>{
       if(state.levels.includes(lv)) state.levels = state.levels.filter(x=>x!==lv);
       else state.levels.push(lv);
@@ -427,8 +503,21 @@ function renderHome(){
 }
 function updateSelInfo(){
   const n = selectedCards().length;
-  $('#selInfo').textContent = state.levels.length ? `Lv ${state.levels.join(',')}・${n}語` : '未選択';
+  const txt = state.levels.length
+    ? (state.levels.length<=4 ? 'Lv '+state.levels.join(',') : 'Lv×'+state.levels.length) + '・'+n+'語'
+    : '未選択';
+  $('#selInfo').textContent = txt;
+  const ls = $('#lvSummaryTxt'); if(ls) ls.textContent = txt;
   $('#bookCount').textContent = `(${n}語)`;
+  const a = $('#accLevel'); if(a && !state.levels.length) a.open = true;
+  updateCfgSummary();
+}
+function updateCfgSummary(){
+  const el = $('#cfgSummaryTxt'); if(!el) return;
+  const dirL = {e2j:'英→意味', j2e:'意味→英', mix:'ミックス'}[state.dir] || '';
+  const diffL = {easy:'やさしい', normal:'ふつう', hard:'むずかしい'}[state.diff] || '';
+  const lenL = state.len==='all' ? '全部' : state.len+'問';
+  el.textContent = dirL+'・'+diffL+'・'+lenL + (state.excludeMastered ? '・覚えた除外' : '');
 }
 
 // ---- session build ----
@@ -505,6 +594,7 @@ function renderQuestion(){
   const q = quiz.qs[quiz.i];
   const dir = qDirFor(); quiz.curDir = dir;
   quiz.answered = false;
+  const qc = $('#qCard'); if(qc){ qc.classList.remove('enter'); void qc.offsetWidth; qc.classList.add('enter'); }
   $('#qCount').textContent = `${quiz.i+1} / ${quiz.qs.length}`;
   $('#qBar').style.width = (quiz.i/quiz.qs.length*100)+'%';
   $('#qFb').textContent=''; $('#qFb').className='fb';
@@ -574,7 +664,16 @@ function finishQuiz(){
   $('#rMsg').textContent = acc===100 ? '全問正解！すばらしい 🎉'
     : acc>=70 ? 'good! この調子で 👍' : '間違えた語は近いうちにまた出ます 💪';
   $('#rReview').classList.toggle('hidden', dueCards().length===0);
-  show('result'); renderHome();
+  const ring = $('#rRing'), C = 326.73;
+  if(ring){ ring.style.transition='none'; ring.style.strokeDashoffset = C; }
+  show('result');
+  if(ring){
+    requestAnimationFrame(()=>{ requestAnimationFrame(()=>{
+      ring.style.transition = '';
+      ring.style.strokeDashoffset = (C * (1 - acc/100)).toFixed(2);
+    }); });
+  }
+  renderHome();
 }
 $('#qSpeak').addEventListener('click',()=> quiz && speak(quiz.qs[quiz.i].word));
 $('#qQuit').addEventListener('click',()=>{ show('home'); renderHome(); });
@@ -606,7 +705,7 @@ function renderBook(){
       <div class="wbhead">
         <span class="w">${c.word}</span>
         <span class="tag">${c.pos}</span>
-        <button class="wbspk">🔊</button>
+        <button class="wbspk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
       </div>
       <div class="wbbody hidden">
         <div class="ja">${c.ja}</div>
@@ -653,19 +752,23 @@ $('#selNone').addEventListener('click',()=>{ state.levels=[]; save(); renderHome
 $$('#lenSeg button').forEach(b=> b.addEventListener('click',()=>{
   state.len = b.dataset.len==='all' ? 'all' : +b.dataset.len; save();
   $$('#lenSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  updateCfgSummary();
 }));
 $$('#dirSeg button').forEach(b=> b.addEventListener('click',()=>{
   state.dir = b.dataset.dir; save();
   $$('#dirSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  updateCfgSummary();
 }));
 $$('#diffSeg button').forEach(b=> b.addEventListener('click',()=>{
   state.diff = b.dataset.diff; save();
   $$('#diffSeg button').forEach(x=>x.classList.toggle('on',x===b));
   $('#diffHint').textContent = DIFF_HINT[state.diff] || '';
+  updateCfgSummary();
 }));
 $$('#exSeg button').forEach(b=> b.addEventListener('click',()=>{
   state.excludeMastered = b.dataset.ex==='1'; save();
   $$('#exSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  updateCfgSummary();
 }));
 $('#openHelp').addEventListener('click',()=> show('help'));
 $('#helpBack').addEventListener('click',()=>{ show('home'); renderHome(); });
