@@ -160,6 +160,12 @@
     <button data-len="all">全部</button>
   </div>
 
+  <h2>覚えた語 <span class="sub">（覚えていない語だけで練習できます）</span></h2>
+  <div class="seg" id="exSeg">
+    <button data-ex="0">出題する</button>
+    <button data-ex="1">出題しない</button>
+  </div>
+
   <h2>スタート</h2>
   <button class="btn" id="startStudy">▶ 学習スタート <span class="sub" id="studyHint" style="color:#dbeafe;"></span></button>
   <button class="btn ghost" id="startReview">🔁 今日の復習だけ <span id="reviewCount"></span></button>
@@ -243,11 +249,12 @@ let state = {
   len: LS.get('len', 10),
   dir: LS.get('dir', 'e2j'),
   diff: LS.get('diff', 'easy'),    // easy | normal | hard (選択肢の紛らわしさ)
+  excludeMastered: LS.get('exMastered', false), // 覚えた語をクイズから除くか
   srs: LS.get('srs', {}),          // id -> {box, due, seen, correct}
   stats: LS.get('stats', {correct:0,total:0})
 };
 function save(){ LS.set('levels',state.levels); LS.set('len',state.len); LS.set('dir',state.dir);
-  LS.set('diff',state.diff); LS.set('srs',state.srs); LS.set('stats',state.stats); }
+  LS.set('diff',state.diff); LS.set('exMastered',state.excludeMastered); LS.set('srs',state.srs); LS.set('stats',state.stats); }
 const DIFF_HINT = {easy:'同じ品詞・別レベルから誤答を選ぶ（意味が離れ選びやすい）', normal:'同じ品詞からランダムに誤答を選ぶ', hard:'同じ品詞・同レベルの紛らわしい語が誤答に並ぶ'};
 // 品詞を基本カテゴリで判定（「名詞・動詞」等の複合表記にも対応）
 const POS_BASES = ['動詞','名詞','形容詞','副詞','前置詞','助動詞','接続詞'];
@@ -331,6 +338,7 @@ function renderHome(){
   $$('#dirSeg button').forEach(b=> b.classList.toggle('on', state.dir===b.dataset.dir));
   $$('#diffSeg button').forEach(b=> b.classList.toggle('on', state.diff===b.dataset.diff));
   $('#diffHint').textContent = DIFF_HINT[state.diff] || '';
+  $$('#exSeg button').forEach(b=> b.classList.toggle('on', (b.dataset.ex==='1')===state.excludeMastered));
   updateSelInfo();
 }
 function updateSelInfo(){
@@ -341,7 +349,8 @@ function updateSelInfo(){
 
 // ---- session build ----
 function buildSession(mode){
-  const pool = selectedCards();
+  let pool = selectedCards();
+  if(state.excludeMastered) pool = pool.filter(c=> !(rec(c) && rec(c).box>=5)); // 覚えた語を除く
   const due = shuffle(pool.filter(c=> rec(c) && rec(c).due <= now()));
   if(mode==='review') return due;
   const fresh = shuffle(pool.filter(c=> !rec(c)));
@@ -559,6 +568,10 @@ $$('#diffSeg button').forEach(b=> b.addEventListener('click',()=>{
   state.diff = b.dataset.diff; save();
   $$('#diffSeg button').forEach(x=>x.classList.toggle('on',x===b));
   $('#diffHint').textContent = DIFF_HINT[state.diff] || '';
+}));
+$$('#exSeg button').forEach(b=> b.addEventListener('click',()=>{
+  state.excludeMastered = b.dataset.ex==='1'; save();
+  $$('#exSeg button').forEach(x=>x.classList.toggle('on',x===b));
 }));
 $('#startStudy').addEventListener('click',()=> startQuiz('study'));
 $('#startReview').addEventListener('click',()=> startQuiz('review'));
