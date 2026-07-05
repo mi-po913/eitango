@@ -443,7 +443,8 @@ function qDirFor(){ return state.dir==='mix' ? (Math.random()<.5?'e2j':'j2e') : 
 function distractors(q, dir){
   const key = dir==='e2j' ? 'ja' : 'word';
   const correct = q[key];
-  const notSame = c => c._id!==q._id && c[key]!==correct;
+  // 同じ見出し語（別の意味）は誤答に出さない ＋ 同一カード・同一表示は除外
+  const notSame = c => c._id!==q._id && c[key]!==correct && c.word!==q.word;
   // 誤答は常に「同じ品詞」から選ぶ（表示品詞で答えを絞れないようにする）
   const samePos = c => notSame(c) && posMatch(q.pos, c.pos);
   let tiers;
