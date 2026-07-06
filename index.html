@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#4f46e5">
+<meta name="theme-color" content="#0f172a">
 <title>英単語学習アプリ</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
   :root{
     --bg:#0f172a; --card:#1e293b; --card2:#273549; --fg:#f1f5f9; --muted:#94a3b8;
@@ -834,6 +838,11 @@ $$('footer button').forEach(b=> b.addEventListener('click',()=>{
 // init
 renderHome();
 show('home');
+
+// ---- PWA (offline) ----
+if('serviceWorker' in navigator && location.protocol !== 'file:'){
+  addEventListener('load', ()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); });
+}
 </script>
 </body>
 </html>
